@@ -1,0 +1,83 @@
+.mainpage {
+  padding: 1em;
+  background: #0f0f0f8c;
+  border-top: 0.75vh solid #73ffe8;
+  border-bottom: 0.375vh solid #73ffe8;
+  border-radius: 50px 50px 30px 30px;
+}
+
+.ctitle {
+  /*
+  background: #6969680a;
+  border-radius: 10px 10px 10px 10px;*/
+  margin: 1vh;
+  font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size: 12px;
+  text-align: center;
+  color: #3fe3f8;
+  width: auto;
+  height: 2em;
+}
+
+.ctools { /*1st selection box*/
+  background: #696968; /*696968*/
+  border-radius: 10px 10px 10px 10px;
+  font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size: 12.5px;
+  color: #3fe3f8;
+  width: auto;
+  height: 4.35vh;
+  margin: 1.5px;
+}
+
+.ctoolsub { /*2nd selection box*/
+  background: #696968;
+  border-radius: 10px 10px 10px 10px;
+  font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size: 15px;
+  color: #3fe3f8;
+  width: auto;
+  height: 4.35vh;
+  text-align: center;
+  justify-content: center;
+  margin: 2.5px;
+}
+
+.ctoolsBTN {
+  background: #6969686c;
+  border-radius: 10px 10px 10px 10px;
+  font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size: 14px;
+  color: #3fe3f8;
+  margin: 3px;
+}
+
+.m3write {
+  background: none;
+  border-radius: 10px 10px 10px 10px;
+  border: 1.5px solid #38d1e6;
+  font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size: 16.5px;
+  color: #0f586e;
+  width: 80%;
+  margin: 2.5px;
+}
+
+.b2text {
+  font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size: 25px;
+  color: #3fe3f8;
+  background: none;
+  border: none;
+  width: 100px;
+  height: auto;
+}
+
+.pass2dm { /*resultext*/
+  font-family: Arial, Verdana, Helvetica, sans-serif;
+  font-size: 20px;
+  color: #93f0fc;
+  background: none;
+  border: none;
+}
+/*creditos: matheus laidler*/

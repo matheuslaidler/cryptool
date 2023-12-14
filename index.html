@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="utf-8" />
+    <script src="js/menu.js"></script>
+    <script src="js/footer.js"></script>
+    <script src="js/crypto.min.js"></script>
+    <script src="js/cryptool.js"></script>
+    <title>Cryptool - Matheus Laidler</title>
+    <link rel="icon" class="favicon" href="img/icons/icon.gif" />
+    <link rel="stylesheet" href="css/cryptool.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/menu.css">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,600i" rel="stylesheet">
+  </head>
+  <body>
+    <!-- menu desktop/mobile -->
+	<nav id="cssmenu">
+		<!-- Topo da página com a Logo -->
+		<table width="auto" border="0" align="left"> 
+			<tbody>
+			 <tr>  
+			  <td>
+				<a href="/" title="matheuslaidler" target="_parent">
+				  <img class="underlaidler" src="img/menu/matheuslaidler.png"/>
+				  <img class="underline" src="img/menu/underline.gif"/></a>
+				</td> 
+			  </tbody>
+			</table> 
+		<div class="menu-icon">
+		  <span class="bar"></span>
+		  <span class="bar"></span>
+		  <span class="bar"></span>
+		</div>
+		<ul>
+		  <li><a href="https://matheuslaidler.github.io">Início</a></li>
+		  <li><a href="https://github.com/matheuslaidler" target="_blank">Github</a></li>
+		  <li class="active has-sub"><a href="#tools" data-toggle="dropdown">Ferramentas</a> <!-- tools -->
+			<ul>
+			  <li><a href="#" target="_blank">Cryptool</a></li> <!--upar em outro repositório - parte do site - projeto separado-->
+			  <li><a href="#soon" target="_blank">CrackNet</a></li> <!--WNetProbe in dev-->
+			  <li><a href="https://github.com/matheuslaidler/Resoluesh" target="_blank">Resoluesh</a></li>
+			  <li><a href="https://github.com/matheuslaidler/ConDex-Script" target="_blank">ConDeX</a></li>
+			</ul>
+			</li>
+		  <li class="has-sub">
+			<a href="#pages" data-toggle="dropdown">Páginas</a>
+			<ul>
+			  <li><a href="https://matheuslaidler.gitbook.io/" target="_blank">Rascunhos</a></li> <!-- articles/drafts/sketches -->
+			  <li><a href="https://road2tech.github.io/" target="_blank">Road2Tech</a></li> <!-- articles -->
+			  <li><a href="https://wayofsec.github.io/" target="_blank">WayOfSec</a></li> <!-- articles -->
+			  <li><a href="https://youtube.com/@matheuslaidler" target="_blank">Youtube</a></li>
+			  <li><a href="https://instagram.com/matheuslaidler" target="_blank">Instagram</a></li>
+			  <li><a href="https://www.linkedin.com/in/laidlervidal/" target="_blank">LinkedIn</a></li>
+			</ul>
+				</li>
+		  	<li class="has-sub">
+				<a href="#" data-toggle="dropdown">Doação</a> <!-- donates -->
+				<ul>
+			  	<li><a href="https://github.com/sponsors/matheuslaidler" target="_blank" title="Github Sponsor">Via Github</a></li>
+			  	<li class="has-sub"><a href="#paypal" title="Paypal">Via PayPal</a>
+				<ul><center><!-- paypal -->
+				<div id="donate-button-container">
+					<div id="donate-button" ></div>
+					<script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+					<script>
+					PayPal.Donation.Button({
+					env:'production',
+					hosted_button_id:'55KGKSTYDTDCS',
+					image: {
+					src:'https://www.paypalobjects.com/pt_BR/BR/i/btn/btn_donateCC_LG.gif',
+					alt:'Faça doações com o botão do PayPal',
+					title:'PayPal - Doação segura !',
+					}
+					}).render('#donate-button');
+					</script>
+				</div>
+				</center></ul>
+				</li>
+				</ul>
+			</li>
+			<li class="has-sub"><a href="#ptbr" target="_parent" data-toggle="dropdown"><img class="idioma" src="img/btns/portuguese.png" title="portuguese"/></a>
+				<ul>
+					<li><a href="#index-en.html" target="_parent"><img class="idioma" src="img/btns/english.png" title="english"/></a></li>
+				  </ul></li>
+	  </nav>
+<!-- fim do menu -->
+
+    <!--  hash maker md5 -->
+
+    <header>
+      <img
+        src="img/logos/matheuslaidler/logo_ml-github-io.png"
+        class="logo-grande"
+      />
+    </header>
+    <section class="main">
+      <div class="video-bg">
+        <video autoplay loop muted>
+          <source src="img/bgs/loop.webm" type="video/mp4" />
+        </video>
+      </div>
+      <div class="inicio"></div>
+      <section class="online-detail">
+        <h2 class="detail">CRYPTOOL</h2>
+        <p></p>
+      </section>
+    </section>
+    <header>
+      <!-- projects -->
+      <!-- Tabela para seleção de conversão e codificação em hash -->
+      <table
+        width="auto"
+        border="0"
+        align="center"
+        cellpadding="0"
+        cellspacing="0"
+      >
+        <tbody>
+          <tr>
+            <td class="mainpage" valign="top" bgcolor="#99999979">
+              <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tbody>
+                  <tr>
+                    <td width="100%" valign="top">
+                      <table
+                        width="100%"
+                        border="0"
+                        cellspacing="0"
+                        cellpadding="0"
+                      >
+                        <tbody>
+                          <tr>
+                            <td class="ctitle" valign="middle">
+                              Conversor e Codificador de Textos
+                            </td>
+                          </tr>
+                          <tr>
+                            <td valign="top">
+                              <select
+                                id="conversionType"
+                                class="ctools"
+                                onchange="showConversionOptions()"
+                              >
+                                <option value="select">Cryptool</option>
+                                <option value="numericConversion">
+                                  Conversão Numérica
+                                </option>
+                                <option value="textualConversion">
+                                  Conversão Textual
+                                </option>
+                                <option value="cryptoCipher">
+                                  Cifras &amp; Criptografias
+                                </option>
+                                <option value="hash">Codificar em Hash</option>
+                              </select>
+                            </td>
+                          </tr>
+                          <tr
+                            id="conversionOptions"
+                            style="display: none"
+                            align="center"
+                          >
+                            <td valign="top">
+                              <select
+                                id="conversionSubType"
+                                class="ctoolsub"
+                              ></select>
+                            </td>
+                          </tr>
+                          <tr
+                            id="textualConversionOptions"
+                            style="display: none"
+                            align="center"
+                          >
+                            <td valign="top">
+                              <select
+                                id="textualConversionSubType"
+                                class="ctoolsub"
+                              ></select>
+                            </td>
+                          </tr>
+                          <tr
+                            id="cryptoCipherOptions"
+                            style="display: none"
+                            align="center"
+                          >
+                            <td valign="top">
+                              <select
+                                id="cryptoCipherSubType"
+                                class="ctoolsub"
+                              ></select>
+                            </td>
+                          </tr>
+                          <tr
+                            id="hashOptions"
+                            style="display: none"
+                            align="center"
+                          >
+                            <td valign="top">
+                              <select id="hashType" class="ctoolsub">
+                                <option value="md5">MD5</option>
+                                <option value="sha1">SHA1</option>
+                                <option value="sha256">SHA256</option>
+                                <option value="sha3-256">SHA3-256</option>
+                              </select>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td valign="top">
+                              <input
+                                type="text"
+                                id="text"
+                                placeholder="Digite para converter ou codificar"
+                                class="m3write"
+                              />
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <button onclick="convertValue()" class="ctoolsBTN">
+                        Converter
+                      </button>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td></td>
+                  </tr>
+                  <tr>
+                    <td class="infobox">
+                      <div id="result" class="pass2dm"></div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </header>
+
+    <!-- fim project -->
+    <!-- Criando o footer -->
+
+    <!-- Botão para mostrar/ocultar o footer -->
+
+    <input type="checkbox" id="toggle-footer" class="toggle-footer-checkbox">
+    <button class="toggle-footer-btn"><img src="img/btns/BTCopyright.png" alt="Logo" style="display: inline-block;"></button>
+
+    <div class="footer">
+      <!-- Criando a div para exibir o texto do rodapé -->
+      <div class="rights">
+        ᴘʀᴏᴊᴇᴛᴏ ᴘᴇssᴏᴀʟ - ᴇᴍ ᴅᴇsᴇɴᴠᴏʟᴠɪᴍᴇɴᴛᴏ
+      </div>
+      <!-- Criando a div para exibir a logo do rodapé -->
+      <div class="pc">
+        <!-- Incluindo a imagem da logo -->
+        <img src="img/icons/icon.gif" alt="Logo" style="display: inline-block;">
+        <!-- Exibindo o texto de direitos autorais -->
+        <span>Copyright © Todos os direitos reservados.</span></div>
+    </div>
+
+</body>
+</html>

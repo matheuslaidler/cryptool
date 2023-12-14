@@ -1,0 +1,245 @@
+* {
+	box-sizing: border-box;
+  }
+  
+  html,
+  body {
+	padding: 0;
+	margin: 0;
+  }
+  
+  body {
+	background: #1c334d;
+	color: #fff;
+	font-family: "Open sans";
+	text-shadow: 1px 1px 1px #333;
+	overflow-x: hidden;
+  }
+  
+  .container {
+	max-width: 100%;
+	margin: auto;
+	padding: 0;
+  }
+  
+  header {
+	position: relative;
+	top: 1em;
+	text-align: center;
+  }
+  
+  .lang img {
+	width: 4em;
+  }
+  
+  .detail {
+	position: absolute;
+	width: 100%;
+	height: auto;
+	right: -0.2em;
+	bottom: -0.8em;
+	text-align: center;
+	padding: 2.5em;
+  }
+  
+  .bg-project {
+	width: 100%;
+	height: 100%;
+  }
+  
+  .logo {
+	display: block;
+	position: absolute;
+	width: 15em;
+	height: auto;
+	top: 0.2vh;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 1;
+  }
+  
+  .logo-grande {
+	display: block;
+	position: absolute;
+	top: 0.15em;
+	max-width: 25em;
+	width: auto;
+	height: auto;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 1;
+  }
+  
+  .online-detail {
+	font-weight: 300;
+	color: #ccc;
+	font-style: italic;
+	font-size: 22px;
+  }
+  
+  a {
+	color: #fff;
+	font-weight: 300;
+  }
+  
+  .main {
+	position: relative;
+	background: #050608;
+	margin: auto;
+	margin-top: 0;
+  }
+  
+  .corpo {
+	position: relative;
+	width: auto;
+	height: 28.5em;
+	background: url(../img/body/overlay.png) no-repeat bottom;
+	background-size: 100%;
+	box-shadow: 0 0 15px #000;
+  }
+  
+  .inicio {
+	position: relative;
+	height: 20em;
+	box-shadow: 0 0 15px #000;
+  }
+  
+  .btn {
+	display: inline-block;
+	position: absolute;
+	bottom: -6.75vh;
+	z-index: -1;
+	background: #fff;
+	right: 20vh;
+	font-style: italic;
+	text-decoration: none;
+	font-size: 3.5vh;
+	color: #ba0707;
+	border-radius: 0 0 15px 15px;
+	padding: 1vh 3vh;
+	text-shadow: none;
+  }
+  
+  .btn:hover {
+	color: #456ad0;
+	padding: 2vh 3vh;
+  }
+  
+  .btn2 {
+	display: inline-block;
+	position: absolute;
+	bottom: -6.75vh;
+	z-index: -1;
+	background: #fff;
+	right: 1vh;
+	font-style: italic;
+	text-decoration: none;
+	font-size: 3.5vh;
+	color: #4ab5b5;
+	border-radius: 0 0 15px 15px;
+	padding: 1vh 3vh;
+	text-shadow: none;
+  }
+  
+  .btn2:hover {
+	color: #456ad0;
+	padding: 2vh 3vh;
+  }
+  
+  .video-bg {
+	position: absolute;
+	opacity: 0.1;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+  }
+  
+  .video-bg video {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+  }
+  
+  .no-scroll {
+	overflow: hidden;
+  }
+  
+  /* Estilos para telas menores - btns */
+  @media (max-width: 980px) {
+	.btn {
+	  right: 6.88em;
+	  padding: 0.5em 1em;
+	  bottom: -2em;
+	}
+  
+	.btn2 {
+	  right: 1.5em;
+	  padding: 0.55em 1em;
+	  bottom: -2em;
+	}
+
+	/* Configuração de touch-action para o contêiner principal */
+	.main-container {
+		touch-action: pan-y;
+	  }
+	
+	  /* Adição para evitar rolamento horizontal */
+	  body {
+		overflow-x: hidden;
+		/*overflow-y: scroll;*/
+	  }
+	
+	  .no-scroll {
+		overflow: hidden !important;
+	  }
+	}
+	
+  /* FOOTER */
+  .toggle-footer-checkbox {
+	display: none;
+  }
+  
+  .toggle-footer-btn {
+	position: fixed;
+	bottom: 20px;
+	left: 20px;
+	background-color: #51b5a43b;
+	border-radius: 50em;
+	cursor: pointer;
+	z-index: 9999;
+	padding: 8px;
+	border: none;
+  }
+  
+  .toggle-footer-btn img {
+	display: block;
+	width: 100%;
+	height: auto;
+  }
+  
+  .footer {
+	display: none;
+	flex-direction: column;
+	background: #aaaaaad2;
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	z-index: 9998;
+	padding: 9.5px;
+	box-sizing: border-box;
+  }
+  
+  .rights {
+	border-radius: 50px 50px 50px 50px;
+	background: #1e1e1ea6;
+	color: #d4fdf6cc;
+	font-family: 'Arial Regular';
+	font-size: 12px;
+	text-align: center;
+	padding: 5px;
+  }
+  
+  .footer .pc {
+	padding: 1px;
+	text-align: center;
+  }
