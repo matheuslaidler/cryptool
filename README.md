@@ -8,6 +8,9 @@ Experience our 'versatile' web tool, designed to transform your input into a var
 
 # Print
 
+![image](https://github.com/matheuslaidler/Cryptool/assets/76860503/d85e40f2-8201-4e49-857c-7b932e0d288f)
+
+
 ![image](https://github.com/matheuslaidler/Cryptool/assets/76860503/69fd55b5-433b-481f-ab90-bbb05cfcd067)
 
 
