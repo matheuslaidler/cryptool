@@ -1,5 +1,5 @@
 # Cryptool
- Web Tool designed to convert your input into something like cipher, hashe, decimal or string.
+ Web Tool designed to convert your input into something like cipher, hash, decimal or string.
  
 ![image](https://github.com/matheuslaidler/Cryptool/assets/76860503/7d3b3230-c926-44bb-ae75-d4c287ca1295)
 
