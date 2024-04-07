@@ -15,77 +15,81 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,600i" rel="stylesheet">
   </head>
   <body>
-    <!-- menu desktop/mobile -->
-	<nav id="cssmenu">
-		<!-- Topo da página com a Logo -->
-		<table width="auto" border="0" align="left"> 
-			<tbody>
-			 <tr>  
-			  <td>
-				<a href="/" title="matheuslaidler" target="_parent">
-				  <img class="underlaidler" src="img/menu/matheuslaidler.png"/>
-				  <img class="underline" src="img/menu/underline.gif"/></a>
-				</td> 
-			  </tbody>
-			</table> 
-		<div class="menu-icon">
-		  <span class="bar"></span>
-		  <span class="bar"></span>
-		  <span class="bar"></span>
-		</div>
+  <!-- menu desktop/mobile - matheus laidler: creditos> matheuslaidler.github.io -->
+<nav id="cssmenu">
+	<table width="auto" border="0" align="left"> 
+	  <tbody>
+	   <tr>  
+		<td>
+		  <a href="/" title="matheuslaidler" target="_parent"> <!--   width="75%" top="1.285vh" left="15vh" align-self="left" border="0"  -->
+					<img class="logotipo" src="img/menu/matheuslaidler.gif"/></a>
+		</td> 
+		</tbody>
+	  </table> 
+	<div class="menu-icon">
+	  <span class="bar"></span>
+	  <span class="bar"></span>
+	  <span class="bar"></span>
+	</div>
+	<ul>
+	  <li><a href="https://matheuslaidler.github.io" target="_parent">Articles</a></li>
+	  <li><a href="https://matheuslaidler.github.io/projetos" target="_parent">Projects</a></li>
+	  <li class="active"><a href="#" target="_parent">Cryptool</a> <!-- tool --></li>
+	  <li class="has-sub">
+	  <a href="#pages" data-toggle="dropdown">Pages</a>
+	  <ul>
+		<li><a href="https://github.com/matheuslaidler" target="_blank">Github</a></li>
+		<li><a href="https://matheuslaidler.gitbook.io/" target="_blank">Rascunhos</a></li> <!-- gitbook - drafts - documentos testes lançados -->
+		<li><a href="https://youtube.com/@matheuslaidler" target="_blank">Youtube</a></li>
+		<li><a href="https://instagram.com/matheuslaidler" target="_blank">Instagram</a></li>
+		<!--<li><a href="https://facebook.com/matheus.laidler" target="_blank">Facebook</a></li>-->
+		<!--<li><a href="https://twitter.com/matheuslaidler" target="_blank">Twitter/X</a></li>-->
+		<!--<li><a href="https://linkedin.com/in/laidlervidal" target="_blank">LinkedIn</a></li>-->
+		<!--<li><a href="https://road2tech.github.io/" target="_blank">Road2Tech ⿻</a></li>-->
+		<!--<li><a href="https://wayofsec.github.io/" target="_blank">WayOfSec ⿻</a></li>-->
+	  </ul>
+		</li>
+		<li class="has-sub">
+		<a href="#donates" data-toggle="dropdown">Donate</a> <!-- donates❤ -->
 		<ul>
-		  <li><a href="https://matheuslaidler.github.io">Home</a></li>
-		  <li><a href="https://github.com/matheuslaidler" target="_blank">Github</a></li>
-		  <li class="active has-sub"><a href="#tools" data-toggle="dropdown">Tools</a> <!-- tools -->
-			<ul>
-			  <li><a href="#" target="_blank">Cryptool</a></li> <!--upar em outro repositório - parte do site - projeto separado-->
-			  <li><a href="#soon" target="_blank">CrackNet</a></li> <!--WNetProbe in dev-->
-			  <li><a href="https://github.com/matheuslaidler/Resoluesh" target="_blank">Resoluesh</a></li>
-			  <li><a href="https://github.com/matheuslaidler/ConDex-Script" target="_blank">ConDeX</a></li>
-			</ul>
-			</li>
+		  <li><a href="https://github.com/sponsors/matheuslaidler" target="_blank" title="Github Sponsor">Github Sponsor</a></li>
 		  <li class="has-sub">
-			<a href="#pages" data-toggle="dropdown">Pages</a>
-			<ul>
-			  <li><a href="https://matheuslaidler.gitbook.io/" target="_blank">Drafts</a></li> <!-- articles/drafts/sketches -->
-			  <li><a href="https://road2tech.github.io/" target="_blank">Road2Tech</a></li> <!-- articles -->
-			  <li><a href="https://wayofsec.github.io/" target="_blank">WayOfSec</a></li> <!-- articles -->
-			  <li><a href="https://youtube.com/@matheuslaidler" target="_blank">Youtube</a></li>
-			  <li><a href="https://instagram.com/matheuslaidler" target="_blank">Instagram</a></li>
-			  <li><a href="https://www.linkedin.com/in/laidlervidal/" target="_blank">LinkedIn</a></li>
+			<a href="https://www.paypal.com/donate/?hosted_button_id=SJYYS28HZPU9A" title="Paypal">PayPal</a>
+			  <!-- my paypal links: 
+			  https://www.paypal.com/donate/?hosted_button_id=SJYYS28HZPU9A
+			  https://www.paypal.com/donate/?hosted_button_id=55KGKSTYDTDCS
+			  -->
+		<ul><center><!-- paypal pop-up -->
+		<div id="donate-button-container">
+		  <div id="donate-button" ></div>
+		  <script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
+		  <script>
+		  PayPal.Donation.Button({
+		  env:'production',
+		  hosted_button_id:'55KGKSTYDTDCS',
+		  image: {
+		  src:'https://www.paypalobjects.com/pt_BR/BR/i/btn/btn_donateCC_LG.gif',
+		  alt:'Faça doações com o botão do PayPal',
+		  title:'PayPal - Doação segura !',
+		  }
+		  }).render('#donate-button');
+		  </script>
+		</div>
+		</center></ul>
+		</li>
+		</ul>
+	  </li>
+		<li class="has-sub">
+		  <a href="#" target="_parent" data-toggle="dropdown"><img class="idioma" src="img/btns/english.png" title="english"/></a>
+				<ul>
+					<li>
+            <a href="index.html" target="_parent"><img class="idioma" src="img/btns/portuguese.png" title="portuguese"/></a>
+			  </li>
 			</ul>
-				</li>
-		  	<li class="has-sub">
-				<a href="#" data-toggle="dropdown">Donate</a> <!-- donates -->
-				<ul>
-			  	<li><a href="https://github.com/sponsors/matheuslaidler" target="_blank" title="Github Sponsor">Via Github</a></li>
-			  	<li class="has-sub"><a href="#paypal" title="Paypal">Via PayPal</a>
-				<ul><center><!-- paypal -->
-				<div id="donate-button-container">
-					<div id="donate-button" ></div>
-					<script src="https://www.paypalobjects.com/donate/sdk/donate-sdk.js" charset="UTF-8"></script>
-					<script>
-					PayPal.Donation.Button({
-					env:'production',
-					hosted_button_id:'55KGKSTYDTDCS',
-					image: {
-					src:'https://www.paypalobjects.com/pt_BR/BR/i/btn/btn_donateCC_LG.gif',
-					alt:'Faça doações com o botão do PayPal',
-					title:'PayPal - Doação segura !',
-					}
-					}).render('#donate-button');
-					</script>
-				</div>
-				</center></ul>
-				</li>
-				</ul>
-			</li>
-			<li class="has-sub"><a href="#" target="_parent" data-toggle="dropdown"><img class="idioma" src="img/btns/english.png" title="english"/></a>
-				<ul>
-					<li><a href="/Cryptool/" target="_parent"><img class="idioma" src="img/btns/portuguese.png" title="portuguese"/></a></li>
-				  </ul></li>
-	  </nav>
-<!-- fim do menu -->
+		</li>
+	</nav>
+  
+  <!-- fim do menu de matheus laidler -->
 
     <!--  hash maker md5 -->
 

@@ -1,15 +1,16 @@
-  /*MENU DE OPÇÕES*/
-
+/*MENU DE OPÇÕES*/
+  
 #cssmenu {
-	width: 100%;
+	width: auto;
 	position: sticky;
-	display: flex;
+	display: inherit;
 	justify-content: center;
 	align-items: center;
-	height: 8.6vh;
+	height: 8vh;
 	background: linear-gradient(to bottom, #32323a, #141414);
 	border-bottom: 0.5vh solid #73ffe8; /*borda azul 73ffe8 - 51b5a4*/
 	top: 0;
+  margin-top: -4vh;
 	z-index: 9999;
 }
 
@@ -24,13 +25,16 @@
 
 #cssmenu a {
   display: inline-block;
-  padding: 0 8vh; /*botão largura*/
-  line-height: 8.2vh; /*botão altura*/
+  padding: 0.75vh 7.5vh; /*botão largura*/
+  line-height: 6vh; /*botão altura*/
+  /*width: 100%;*/
   color: #fff;
   text-decoration: none;
   font-size: 12px;
   text-align: center;
+  /*margin-left: -1.25vh;*/
 }
+
 
 /*arredondamento dos cantos superiores dos botoes usados*/
 #cssmenu > ul > li > a {
@@ -89,49 +93,30 @@
   background: #73ffe89f;
 }
 
-/*logo*/
-.underlaidler {
-  position: absolute;
-  top: 0.60vh;
-  left: 15.725vh;
-  width: auto;
-  height: 5vh;
+.logotipo {
+  width: 65%;
+  height: auto;
+  top: 1.285vh;
+  left: 10vh;
+  align-self: left;
+  margin-top: -0.65vh;
+  margin-left: 2.75vh;
+  border: 0;
 }
 
-.underline {
-  position: absolute;
-  width: 0.485vh;
-  height: 4.325vh;
-  top: 1.525vh;
-  left: 41.5325vh;
-}
 .idioma {
   position: relative;
-  top: 0.525vh;
+  top: 0.7505vh;
   width: auto;
   height: 2.45vh;
+  margin-top: -0.75vh;
 }
 
 /* Estilos para telas menores -> Logo no menu de tablets */
 @media (max-width: 1280px) {
-  .underlaidler {
-	  position: absolute;
-	  top: 0.60vh;
-	  left: 1.725vh;
-	  width: auto;
-	  height: 5vh;
-  }
-  
-  .underline {
-	  position: absolute;
-	  width: 0.485vh;
-	  height: 4.325vh;
-	  top: 1.525vh;
-	  left: 28vh;
-  }
-}
 
-/* Estilos para telas menores -> Menu Hamburguer */
+
+/*  Menu Hamburguer */
 @media screen and (max-width: 980px) {
   #cssmenu {
 	  position: sticky;
@@ -214,13 +199,22 @@
 	max-height: 500vh;
   }
 
+  #cssmenu .logotipo {
+
+	width: 65%;
+  padding: 0;
+	position: center;
+  margin-top: -1.75vh;
+  }
+  
   /* Estilos para o ícone do hambúrguer */
   #cssmenu .menu-icon {
 	cursor: pointer;
-	display: inline-block;
-	position: center; /*absolute p voltar ao canto*/
+	position: absolute; /*absolute p voltar ao canto  // center // */
 	width: 3vh;
 	height: 3vh;
+  margin-top: 2.5vh;
+  margin-left: 2vh;
   }
 
   #cssmenu .menu-icon .bar {
@@ -240,11 +234,11 @@
   #cssmenu ul.open {
 	display: block;
 	position: absolute;
-	top: 5.55vh;
+	top: 15.55vh;
 	right: 0;
 	left: 0;
 	background-color: #141414cb;
-	border-top: 3.5px solid #73ffe8;
+	border-top: 13.5px solid #73ffe8;
 	padding: 0.2vh;
 	padding-top: 0;
 	min-height: 135vh;
@@ -280,6 +274,16 @@
 	}
 }
 
+@media (max-width: 1080px) {
+
+  #cssmenu .logotipo {
+
+    width: 48%;
+    padding: 0;
+    position: center;
+    margin-top: -8.75vh;
+    }
+  }
   
 /* estilo para telas menores - pockets phones? até 280p*/
 
@@ -313,6 +317,11 @@
   #cssmenu ul ul {
 	transition: max-height 0.35s ease-out;
   }
-
+  
+  #cssmenu .logotipo {
+  
+  display:none;
+  }
 
 } 
+}
