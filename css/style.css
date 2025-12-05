@@ -293,11 +293,18 @@
 #wordlistControl { margin-top: 6px; width:100%; max-width:520px; }
 #wordlistControl .ctoolsub { min-width: 140px; }
 #wordlistControl .wordlist-row { display:flex; gap:8px; align-items:center; justify-content:center; }
-#wordlistControl .wordlist-meta { margin-top:6px; font-size:0.95em; color:#cfe; text-align:center; max-width:360px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:auto; margin-right:auto; }
+#wordlistControl .wordlist-meta { margin-top:6px; font-size:0.95em; color:#cfe; text-align:center; max-width:520px; overflow-wrap: anywhere; word-break:break-word; margin-left:auto; margin-right:auto; }
 #wordlistControl .wordlist-actions { margin-top:6px; display:flex; gap:8px; align-items:center; justify-content:center; }
 #wordlistStatus { display:block; }
 #crackProgress { vertical-align: middle; width:180px; height:12px; border-radius:6px; overflow:hidden; }
 .crack-log { display:inline-block; min-width:180px; color:#bff; margin-left:8px; text-align:left; }
+/* merge checkbox small styling */
+.merge-label input { width:14px; height:14px; }
+.merge-label span { display:inline-block; vertical-align:middle; }
+
+/* wordlist merge row */
+.wordlist-merge { display:block; }
+.wordlist-merge .merge-label { display:inline-flex; gap:8px; align-items:center; color:#cfe; font-size:0.95em; }
 
 /* Buttons styling sync */
 .ctoolsBTN { cursor: pointer; }

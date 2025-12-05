@@ -234,11 +234,11 @@
                                 <div id="wordlistControl" style="display:none;">
                                   <div class="wordlist-row">
                                     <label for="wordlistSource" class="sr-only">Fonte da wordlist</label>
-                                    <select id="wordlistSource" class="ctoolsub" aria-label="Fonte da wordlist">
-                                      <option value="default">Padrão</option>
-                                      <option value="custom">Personalizada</option>
-                                    </select>
-                                    <button type="button" id="openWordlistModalBtn" class="ctoolsBTN" style="display:none">Selecionar</button>
+                                      <select id="wordlistSource" class="ctoolsub" aria-label="Fonte da wordlist">
+                                        <option value="default">Padrão</option>
+                                        <option value="custom">Personalizada</option>
+                                      </select>
+                                      <button type="button" id="openWordlistModalBtn" class="ctoolsBTN" style="display:none">Selecionar</button>
                                   </div>
                                   <div class="wordlist-meta">
                                     <span id="wordlistStatus" class="b2text" aria-live="polite">Wordlist padrão</span>
@@ -247,6 +247,12 @@
                                     <progress id="crackProgress" value="0" max="100" style="display:none;"></progress>
                                     <button type="button" id="abortCrackBtn" class="ctoolsBTN" style="display:none">Abortar</button>
                                     <div id="crackLog" class="crack-log" aria-live="polite"></div>
+                                  </div>
+                                  <div class="wordlist-merge" style="margin-top:6px;text-align:center;display:none;">
+                                    <label class="merge-label">
+                                      <input type="checkbox" id="mergeDefault" />
+                                      <span>Incluir padrão</span>
+                                    </label>
                                   </div>
                                 </div>
                               </div>

@@ -935,6 +935,66 @@ function loadDefaultWordlist() {
     });
   });
 }
+
+// Orchestrate: process default candidates first, then stream the uploaded file.
+function startMergedCrack(file, hash, hashType) {
+  // Ensure default is loaded
+  var doStart = function() {
+    if (!Array.isArray(userWordlist) || userWordlist.length === 0) {
+      // nothing to batch, just stream file
+      startWorkerCrackWithFile(file, hash, hashType);
+      return;
+    }
+    // Create a temporary worker to process the default batch first
+    var batchWorker = new Worker('js/crackWorker.js');
+    var progressEl = document.getElementById('crackProgress');
+    var abortBtn = document.getElementById('abortCrackBtn');
+    if (progressEl) { progressEl.style.display='inline-block'; progressEl.value = 0; }
+    if (abortBtn) { abortBtn.style.display='inline-block'; }
+    var cleaned = userWordlist.slice(0);
+    batchWorker.onmessage = function(ev) {
+      var d = ev.data;
+      if (!d) return;
+      if (d.type === 'progress') {
+        if (d.processed && d.total && progressEl) progressEl.value = Math.min(100, Math.floor((d.processed/d.total)*100));
+      } else if (d.type === 'found') {
+        if (progressEl) progressEl.style.display='none';
+        if (abortBtn) abortBtn.style.display='none';
+        var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
+        try { batchWorker.terminate(); } catch(e){}
+        batchWorker = null;
+      } else if (d.type === 'batchDone') {
+        // finished default batch, proceed to stream file
+        try { batchWorker.terminate(); } catch(e){}
+        batchWorker = null;
+        if (progressEl) { progressEl.style.display='none'; progressEl.value = 0; }
+        if (abortBtn) { abortBtn.style.display='none'; }
+        // now start real worker for file streaming (this will show progress again)
+        startWorkerCrackWithFile(file, hash, hashType);
+      } else if (d.type === 'error') {
+        var res = document.getElementById('result'); if (res) res.textContent = 'Erro: ' + (d.message||'');
+        try { batchWorker.terminate(); } catch(e){}
+        batchWorker = null;
+      }
+    };
+    // send default candidates as a batch
+    try {
+      batchWorker.postMessage({cmd:'start', hash:hash, hashType:hashType, candidates:cleaned});
+    } catch (err) {
+      var res = document.getElementById('result'); if (res) res.textContent = 'Erro ao iniciar processamento.';
+      try { batchWorker.terminate(); } catch(e){}
+      batchWorker = null;
+      // fallback to streaming only
+      startWorkerCrackWithFile(file, hash, hashType);
+    }
+  };
+  // load default if necessary
+  if (!Array.isArray(userWordlist) || userWordlist.length === 0) {
+    loadDefaultWordlist().then(doStart).catch(function(){ doStart(); });
+  } else {
+    doStart();
+  }
+}
 window.Cryptool = {
   convertValue: convertValue,
   showConversionOptions: showConversionOptions,
@@ -964,7 +1024,30 @@ document.addEventListener('DOMContentLoaded', function() {
         var hashType = (document.getElementById('hashType') || {}).value || 'md5';
         if (!hash) { document.getElementById('result').textContent = 'Insira um hash para decodificar.'; return; }
         if (wordlistSource === 'custom' && selectedFile) {
-          startWorkerCrackWithFile(selectedFile, hash, hashType);
+          var merge = (document.getElementById('mergeDefault') || {}).checked;
+          var preview = Array.isArray(userWordlist) && userWordlist.length ? userWordlist : null;
+          // If merge requested and we have a small preview, merge default + preview and run in-memory batch
+          if (merge) {
+            if (preview && preview.length < 2000) {
+              loadDefaultWordlist().then(function(defaults){
+                var merged = defaults.concat(preview);
+                startWorkerCrackWithCandidates(merged, hash, hashType);
+              }).catch(function(){
+                // fallback to streaming merged processing
+                startMergedCrack(selectedFile, hash, hashType);
+              });
+            } else {
+              // large file: process default first then stream file
+              startMergedCrack(selectedFile, hash, hashType);
+            }
+            return;
+          }
+          // No merge: if we have a small preview, run candidates directly for speed; otherwise stream the file
+          if (preview && preview.length < 2000) {
+            startWorkerCrackWithCandidates(preview, hash, hashType);
+          } else {
+            startWorkerCrackWithFile(selectedFile, hash, hashType);
+          }
           return;
         } else {
           // load default wordlist into userWordlist if not loaded
@@ -1022,6 +1105,8 @@ document.addEventListener('DOMContentLoaded', function() {
       loadDefaultWordlist();
       // hide modal button when using default
       var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display='none';
+      // hide merge checkbox when default selected
+      var mergeRow = document.querySelector('.wordlist-merge'); if (mergeRow) mergeRow.style.display='none';
       // clear any selected custom file
       window.__selectedWordlistFile = null;
     } else {
@@ -1030,6 +1115,8 @@ document.addEventListener('DOMContentLoaded', function() {
       window.__selectedWordlistFile = null;
       if (status) status.textContent = 'Arquivo: (Vazio)';
       var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display='inline-block';
+      // show merge checkbox when custom selected
+      var mergeRow2 = document.querySelector('.wordlist-merge'); if (mergeRow2) mergeRow2.style.display='block';
     }
     // reset UI hints
     var progressEl = document.getElementById('crackProgress'); if (progressEl) { progressEl.style.display='none'; progressEl.value=0; }
