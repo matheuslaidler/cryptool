@@ -59,8 +59,14 @@
   color: #3fe3f8;
   background: none;
   border: none;
-  width: 100px;
+  display: block;
+  text-align: center;
+  max-width: 520px;
+  margin-left: auto;
+  margin-right: auto;
   height: auto;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .pass2dm {
