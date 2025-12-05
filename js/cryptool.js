@@ -2,7 +2,9 @@
 (function(window){
 'use strict';
 // user-provided wordlist (from upload)
-var userWordlist = null;
+// uploaded preview (first N lines) and default site wordlist
+var uploadedPreview = null;
+var defaultWordlist = null;
 var crackWorker = null;
 var currentWorkerRunning = false;
 var lastProgressTimestamp = 0;
@@ -545,7 +547,7 @@ function crackHash(targetHash, hashType) {
   var defaultCandidates = [
     '123456','password','123456789','12345678','12345','qwerty','abc123','senha','senha123','p@ssw0rd','password1','admin','letmein','welcome','monkey','dragon','teste','test'
   ];
-  var candidates = Array.isArray(userWordlist) && userWordlist.length ? userWordlist.concat(defaultCandidates) : defaultCandidates;
+  var candidates = Array.isArray(uploadedPreview) && uploadedPreview.length ? uploadedPreview.concat(defaultCandidates) : (Array.isArray(defaultWordlist) && defaultWordlist.length ? defaultWordlist : defaultCandidates);
   targetHash = String(targetHash).toLowerCase();
   for (var i = 0; i < candidates.length; i++) {
     var c = String(candidates[i]);
@@ -575,10 +577,10 @@ function handleWordlistUpload() {
     var text = e.target.result || '';
     var lines = text.split(/\r?\n/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
     // keep only first 500 lines as a quick preview in main thread
-    userWordlist = lines.slice(0,500);
+    uploadedPreview = lines.slice(0,500);
     // store selected file for worker streaming
     window.__selectedWordlistFile = file;
-    status.textContent = 'Arquivo: ' + userWordlist.length + ' palavras';
+    status.textContent = 'Arquivo: ' + uploadedPreview.length + ' palavras';
     // set source to custom and show open button
     var sourceSel = document.getElementById('wordlistSource'); if (sourceSel) sourceSel.value = 'custom';
     var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display = 'inline-block';
@@ -926,8 +928,8 @@ function loadDefaultWordlist() {
       return resp.text();
     }).then(function(txt){
       var lines = txt.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
-      userWordlist = lines;
-      var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Padrão: ' + lines.length + ' palavras';
+        defaultWordlist = lines;
+        var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Padrão: ' + lines.length + ' palavras';
       resolve(lines);
     }).catch(function(err){
       var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Erro ao carregar wordlist padrão.';
@@ -940,7 +942,7 @@ function loadDefaultWordlist() {
 function startMergedCrack(file, hash, hashType) {
   // Ensure default is loaded
   var doStart = function() {
-    if (!Array.isArray(userWordlist) || userWordlist.length === 0) {
+    if (!Array.isArray(defaultWordlist) || defaultWordlist.length === 0) {
       // nothing to batch, just stream file
       startWorkerCrackWithFile(file, hash, hashType);
       return;
@@ -951,7 +953,7 @@ function startMergedCrack(file, hash, hashType) {
     var abortBtn = document.getElementById('abortCrackBtn');
     if (progressEl) { progressEl.style.display='inline-block'; progressEl.value = 0; }
     if (abortBtn) { abortBtn.style.display='inline-block'; }
-    var cleaned = userWordlist.slice(0);
+    var cleaned = defaultWordlist.slice(0);
     batchWorker.onmessage = function(ev) {
       var d = ev.data;
       if (!d) return;
@@ -989,7 +991,7 @@ function startMergedCrack(file, hash, hashType) {
     }
   };
   // load default if necessary
-  if (!Array.isArray(userWordlist) || userWordlist.length === 0) {
+  if (!Array.isArray(defaultWordlist) || defaultWordlist.length === 0) {
     loadDefaultWordlist().then(doStart).catch(function(){ doStart(); });
   } else {
     doStart();
@@ -1025,7 +1027,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!hash) { document.getElementById('result').textContent = 'Insira um hash para decodificar.'; return; }
         if (wordlistSource === 'custom' && selectedFile) {
           var merge = (document.getElementById('mergeDefault') || {}).checked;
-          var preview = Array.isArray(userWordlist) && userWordlist.length ? userWordlist : null;
+          var preview = Array.isArray(uploadedPreview) && uploadedPreview.length ? uploadedPreview : null;
           // If merge requested and we have a small preview, merge default + preview and run in-memory batch
           if (merge) {
             if (preview && preview.length < 2000) {
@@ -1050,17 +1052,20 @@ document.addEventListener('DOMContentLoaded', function() {
           }
           return;
         } else {
-          // load default wordlist into userWordlist if not loaded
-          if (!Array.isArray(userWordlist) || userWordlist.length === 0) {
+          // If user selected "Personalizada" but didn't provide a file, switch back to default visually
+          try { var srcSel = document.getElementById('wordlistSource'); if (srcSel) { srcSel.value = 'default'; } } catch(e){}
+          var mergeRowHide = document.querySelector('.wordlist-merge'); if (mergeRowHide) mergeRowHide.style.display='none';
+          // load default wordlist into memory if not loaded and run it
+          if (!Array.isArray(defaultWordlist) || defaultWordlist.length === 0) {
             loadDefaultWordlist().then(function(){
-              startWorkerCrackWithCandidates(userWordlist, hash, hashType);
+              startWorkerCrackWithCandidates(defaultWordlist, hash, hashType);
             }).catch(function(){
               // fallback to built-in crack
               var found = crackHash(hash, hashType);
               document.getElementById('result').textContent = found || 'Não encontrado na wordlist.';
             });
           } else {
-            startWorkerCrackWithCandidates(userWordlist, hash, hashType);
+            startWorkerCrackWithCandidates(defaultWordlist, hash, hashType);
           }
           return;
         }
@@ -1082,7 +1087,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // If user selected decode for hash and default source is selected, load default wordlist if not loaded
     var wordlistSource = (document.getElementById('wordlistSource')||{}).value || 'default';
-    if (convType === 'hash' && action === 'decode' && wordlistSource === 'default' && (!Array.isArray(userWordlist) || userWordlist.length === 0)) {
+    if (convType === 'hash' && action === 'decode' && wordlistSource === 'default' && (!Array.isArray(defaultWordlist) || defaultWordlist.length === 0)) {
       loadDefaultWordlist();
     }
   });
@@ -1111,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', function() {
       window.__selectedWordlistFile = null;
     } else {
       // clear preview and wait for user upload
-      userWordlist = [];
+      uploadedPreview = [];
       window.__selectedWordlistFile = null;
       if (status) status.textContent = 'Arquivo: (Vazio)';
       var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display='inline-block';
