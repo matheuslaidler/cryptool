@@ -631,7 +631,7 @@ function startWorkerCrackWithFile(file, hash, hashType) {
       }
     } else if (d.type === 'found') {
       currentWorkerRunning = false;
-      if (progressEl) progressEl.style.display='none';
+      if (progressEl) progressEl.value = 100;
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
       crackWorker.terminate(); crackWorker = null;
@@ -641,7 +641,7 @@ function startWorkerCrackWithFile(file, hash, hashType) {
       // no-op
     } else if (d.type === 'done') {
       currentWorkerRunning = false;
-      if (progressEl) progressEl.style.display='none';
+      if (progressEl) progressEl.value = 100;
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Não encontrado na wordlist.';
       crackWorker.terminate(); crackWorker = null;
@@ -704,7 +704,7 @@ function chunkFileInBatches(file, hash, hashType) {
       chunkedCancelFlag = true;
       processingBatch = false;
       currentWorkerRunning = false;
-      if (progressEl) progressEl.style.display='none';
+      if (progressEl) progressEl.value = 100;
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
       try { crackWorker.terminate(); } catch(e){}
@@ -758,7 +758,7 @@ function chunkFileInBatches(file, hash, hashType) {
       if (offset >= file.size) {
         // all data read and no pending candidates -> finished
         currentWorkerRunning = false;
-        if (progressEl) progressEl.style.display='none';
+        if (progressEl) progressEl.value = 100;
         if (abortBtn) abortBtn.style.display='none';
         var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Não encontrado na wordlist.';
         try { crackWorker.terminate(); } catch(e){}
@@ -848,14 +848,14 @@ function startWorkerCrackWithCandidates(candidates, hash, hashType) {
       }
     } else if (d.type === 'found') {
       currentWorkerRunning = false;
-      if (progressEl) progressEl.style.display='none';
+      if (progressEl) progressEl.value = 100;
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
       crackWorker.terminate(); crackWorker = null;
     } else if (d.type === 'batchDone' || d.type === 'done') {
       // batch finished (we sent candidates as a single batch)
       currentWorkerRunning = false;
-      if (progressEl) progressEl.style.display='none';
+      if (progressEl) progressEl.value = 100;
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Não encontrado na wordlist.';
       crackWorker.terminate(); crackWorker = null;
@@ -960,7 +960,7 @@ function startMergedCrack(file, hash, hashType) {
       if (d.type === 'progress') {
         if (d.processed && d.total && progressEl) progressEl.value = Math.min(100, Math.floor((d.processed/d.total)*100));
       } else if (d.type === 'found') {
-        if (progressEl) progressEl.style.display='none';
+        if (progressEl) progressEl.value = 100;
         if (abortBtn) abortBtn.style.display='none';
         var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
         try { batchWorker.terminate(); } catch(e){}

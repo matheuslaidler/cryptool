@@ -243,11 +243,8 @@
                                   <div class="wordlist-meta">
                                     <span id="wordlistStatus" class="b2text" aria-live="polite">Wordlist padrão</span>
                                   </div>
-                                  <div class="wordlist-actions">
-                                    <progress id="crackProgress" value="0" max="100" style="display:none;"></progress>
-                                    <button type="button" id="abortCrackBtn" class="ctoolsBTN" style="display:none">Abortar</button>
-                                    <div id="crackLog" class="crack-log" aria-live="polite"></div>
-                                  </div>
+                                  <!-- progress/abort moved below result for better positioning -->
+                                  <div class="wordlist-actions" style="display:none;" aria-hidden="true"></div>
                                   <div class="wordlist-merge" style="margin-top:6px;text-align:center;display:none;">
                                     <label class="merge-label">
                                       <input type="checkbox" id="mergeDefault" />
@@ -299,6 +296,15 @@ p@ssw0rd</pre>
                   <tr>
                     <td class="infobox">
                       <div id="result" class="pass2dm" role="status" aria-live="polite"></div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td class="infobox">
+                      <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding-top:8px;">
+                        <progress id="crackProgress" value="0" max="100" style="display:none; width:80%; max-width:480px;"></progress>
+                        <button type="button" id="abortCrackBtn" class="ctoolsBTN" style="display:none">Abortar</button>
+                        <div id="crackLog" class="crack-log" aria-live="polite"></div>
+                      </div>
                     </td>
                   </tr>
                 </tbody>
