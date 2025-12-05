@@ -1,4 +1,6 @@
 // Cryptool - Matheus Laidler
+(function(window){
+'use strict';
 // Função para converter o valor
 function convertValue() {
   var conversionType = document.getElementById("conversionType").value;
@@ -32,8 +34,15 @@ function convertValue() {
       convertedValue = convertCryptoCipher(inputValue, actionType);
       break;
     case "hash":
-      convertToHash();
-      return;
+      if (actionType === 'decode') {
+        var hashType = document.getElementById('hashType').value;
+        var cracked = crackHash(inputValue, hashType);
+        resultElement.textContent = cracked ? ('Encontrado: ' + cracked) : 'Não encontrado na wordlist.';
+        return;
+      } else {
+        convertToHash();
+        return;
+      }
     default:
       resultElement.innerText = "Opção de conversão inválida.";
       return;
@@ -52,6 +61,16 @@ function showConversionOptions() {
   );
   var cryptoCipherOptions = document.getElementById("cryptoCipherOptions");
   var hashOptions = document.getElementById("hashOptions");
+  var actionSelect = document.getElementById('actionType');
+
+  // Show the action (Encode/Decode) only for cipher/hash types
+  if (actionSelect) {
+    if (conversionType === 'cryptoCipher' || conversionType === 'hash') {
+      actionSelect.style.display = 'inline-block';
+    } else {
+      actionSelect.style.display = 'none';
+    }
+  }
 
   // Oculta todas as opções
   conversionOptions.style.display = "none";
@@ -313,16 +332,33 @@ function convertToMorse(text) {
 
 // Função para converter texto em Base64
 function convertToBase64(text) {
-  var base64Result = btoa(text);
-  return base64Result;
+  return utf8ToBase64(text);
 }
 
 function decodeBase64(text) {
+  return base64ToUtf8(text);
+}
+
+// UTF-8 safe base64 helpers
+function utf8ToBase64(str) {
   try {
-    // atob may throw for invalid input
-    return atob(text);
+    var bytes = new TextEncoder().encode(str);
+    var binary = '';
+    for (var i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
   } catch (e) {
-    return "Entrada Base64 inválida.";
+    return 'Erro ao converter para Base64';
+  }
+}
+
+function base64ToUtf8(b64) {
+  try {
+    var binary = atob(b64);
+    var bytes = new Uint8Array(binary.length);
+    for (var i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  } catch (e) {
+    return 'Entrada Base64 inválida.';
   }
 }
 
@@ -488,3 +524,34 @@ function calculateSHA3_256(text) {
 
   return hash;
 }
+
+// PoC: tentativa simples de 'crack' por wordlist (lado cliente) - pequena lista embutida
+function crackHash(targetHash, hashType) {
+  if (!targetHash) return null;
+  var candidates = [
+    '123456','password','123456789','12345678','12345','qwerty','abc123','senha','admin','letmein','welcome','monkey','dragon','teste','test'
+  ];
+  targetHash = String(targetHash).toLowerCase();
+  for (var i = 0; i < candidates.length; i++) {
+    var c = candidates[i];
+    var h = '';
+    if (hashType === 'md5') h = CryptoJS.MD5(c).toString();
+    else if (hashType === 'sha1') h = CryptoJS.SHA1(c).toString();
+    else if (hashType === 'sha256') h = CryptoJS.SHA256(c).toString();
+    else if (hashType === 'sha3-256') h = CryptoJS.SHA3(c, { outputLength: 256 }).toString();
+    if (h.toLowerCase() === targetHash) return c;
+  }
+  return null;
+}
+
+// Expose functions used by inline handlers and provide module namespace
+window.convertValue = convertValue;
+window.showConversionOptions = showConversionOptions;
+window.convertToHash = convertToHash;
+window.Cryptool = {
+  convertValue: convertValue,
+  showConversionOptions: showConversionOptions,
+  crackHash: crackHash
+};
+
+})(window);
