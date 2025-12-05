@@ -576,8 +576,8 @@ function handleWordlistUpload() {
     reader.onload = function(e) {
     var text = e.target.result || '';
     var lines = text.split(/\r?\n/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
-    // keep only first 999 lines as a quick preview in main thread
-    uploadedPreview = lines.slice(0,999);
+    // keep only first 9999 lines as a quick preview in main thread
+    uploadedPreview = lines.slice(0,9999);
     // store selected file for worker streaming
     window.__selectedWordlistFile = file;
     // update status text, respect merge checkbox if set
@@ -635,7 +635,7 @@ function startWorkerCrackWithFile(file, hash, hashType) {
       if (progressEl) {
         progressEl.value = 100;
         // trigger transient completion animation
-        try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 1400); } catch(e){}
+        try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 700); } catch(e){}
       }
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
@@ -648,7 +648,7 @@ function startWorkerCrackWithFile(file, hash, hashType) {
       currentWorkerRunning = false;
       if (progressEl) {
         progressEl.value = 100;
-        try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 1400); } catch(e){}
+        try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 700); } catch(e){}
       }
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Não encontrado na wordlist.';
@@ -713,7 +713,7 @@ function chunkFileInBatches(file, hash, hashType) {
       chunkedCancelFlag = true;
       processingBatch = false;
       currentWorkerRunning = false;
-      if (progressEl) { progressEl.value = 100; try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 1400); } catch(e){} }
+      if (progressEl) { progressEl.value = 100; try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 700); } catch(e){} }
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
       try { crackWorker.terminate(); } catch(e){}
@@ -857,14 +857,14 @@ function startWorkerCrackWithCandidates(candidates, hash, hashType) {
       }
     } else if (d.type === 'found') {
       currentWorkerRunning = false;
-      if (progressEl) { progressEl.value = 100; try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 1400); } catch(e){} }
+      if (progressEl) { progressEl.value = 100; try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 700); } catch(e){} }
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
       crackWorker.terminate(); crackWorker = null;
     } else if (d.type === 'batchDone' || d.type === 'done') {
       // batch finished (we sent candidates as a single batch)
       currentWorkerRunning = false;
-      if (progressEl) { progressEl.value = 100; try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 1400); } catch(e){} }
+      if (progressEl) { progressEl.value = 100; try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 700); } catch(e){} }
       if (abortBtn) abortBtn.style.display='none';
       var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Não encontrado na wordlist.';
       crackWorker.terminate(); crackWorker = null;
@@ -1013,7 +1013,7 @@ function startMergedCrack(file, hash, hashType) {
       if (d.type === 'progress') {
         if (d.processed && d.total && progressEl) progressEl.value = Math.min(100, Math.floor((d.processed/d.total)*100));
       } else if (d.type === 'found') {
-        if (progressEl) { progressEl.value = 100; try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 1400); } catch(e){} }
+        if (progressEl) { progressEl.value = 100; try { progressEl.classList.add('complete'); setTimeout(function(){ progressEl.classList.remove('complete'); }, 700); } catch(e){} }
         if (abortBtn) abortBtn.style.display='none';
         var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
         try { batchWorker.terminate(); } catch(e){}
