@@ -148,14 +148,6 @@
                           </tr>
                           <tr>
                             <td valign="top">
-                              <select id="actionType" class="ctools" aria-label="Ação de codificação">
-                                <option value="encode">Encode</option>
-                                <option value="decode">Decode</option>
-                              </select>
-                            </td>
-                          </tr>
-                          <tr>
-                            <td valign="top">
                               <select
                                 id="conversionType"
                                 class="ctools"
@@ -227,6 +219,24 @@
                                 <option value="sha256">SHA256</option>
                                 <option value="sha3-256">SHA3-256</option>
                               </select>
+                            </td>
+                          </tr>
+                          <!-- Action row: shown only for ciphers and hashes -->
+                          <tr id="actionRow" style="display:none" align="center">
+                            <td valign="top">
+                              <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+                                <label for="actionType" class="sr-only">Ação</label>
+                                <select id="actionType" class="ctoolsub" aria-label="Ação Encode/Decode">
+                                  <option value="encode">Encode</option>
+                                  <option value="decode">Decode</option>
+                                </select>
+
+                                <label for="wordlistFile" class="sr-only">Enviar wordlist</label>
+                                <input type="file" id="wordlistFile" accept=".txt" />
+                                <button type="button" id="loadWordlistBtn" onclick="handleWordlistUpload()" class="ctoolsBTN">Carregar wordlist</button>
+                                <button type="button" id="startCrackBtn" onclick="runCrackFromUI()" class="ctoolsBTN">Iniciar Crack</button>
+                                <span id="wordlistStatus" class="b2text" aria-live="polite"></span>
+                              </div>
                             </td>
                           </tr>
                           <tr>

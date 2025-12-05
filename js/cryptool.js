@@ -1,6 +1,8 @@
 // Cryptool - Matheus Laidler
 (function(window){
 'use strict';
+// user-provided wordlist (from upload)
+var userWordlist = null;
 // Função para converter o valor
 function convertValue() {
   var conversionType = document.getElementById("conversionType").value;
@@ -61,14 +63,14 @@ function showConversionOptions() {
   );
   var cryptoCipherOptions = document.getElementById("cryptoCipherOptions");
   var hashOptions = document.getElementById("hashOptions");
-  var actionSelect = document.getElementById('actionType');
+  var actionRow = document.getElementById('actionRow');
 
-  // Show the action (Encode/Decode) only for cipher/hash types
-  if (actionSelect) {
+  // Show the action row (Encode/Decode + wordlist UI) only for cipher/hash types
+  if (actionRow) {
     if (conversionType === 'cryptoCipher' || conversionType === 'hash') {
-      actionSelect.style.display = 'inline-block';
+      actionRow.style.display = 'table-row';
     } else {
-      actionSelect.style.display = 'none';
+      actionRow.style.display = 'none';
     }
   }
 
@@ -528,12 +530,14 @@ function calculateSHA3_256(text) {
 // PoC: tentativa simples de 'crack' por wordlist (lado cliente) - pequena lista embutida
 function crackHash(targetHash, hashType) {
   if (!targetHash) return null;
-  var candidates = [
-    '123456','password','123456789','12345678','12345','qwerty','abc123','senha','admin','letmein','welcome','monkey','dragon','teste','test'
+  var defaultCandidates = [
+    '123456','password','123456789','12345678','12345','qwerty','abc123','senha','senha123','p@ssw0rd','password1','admin','letmein','welcome','monkey','dragon','teste','test'
   ];
+  var candidates = Array.isArray(userWordlist) && userWordlist.length ? userWordlist.concat(defaultCandidates) : defaultCandidates;
   targetHash = String(targetHash).toLowerCase();
   for (var i = 0; i < candidates.length; i++) {
-    var c = candidates[i];
+    var c = String(candidates[i]);
+    if (!c) continue;
     var h = '';
     if (hashType === 'md5') h = CryptoJS.MD5(c).toString();
     else if (hashType === 'sha1') h = CryptoJS.SHA1(c).toString();
@@ -544,10 +548,44 @@ function crackHash(targetHash, hashType) {
   return null;
 }
 
+// Handle file upload (wordlist)
+function handleWordlistUpload() {
+  var input = document.getElementById('wordlistFile');
+  var status = document.getElementById('wordlistStatus');
+  if (!input || !input.files || input.files.length === 0) {
+    status.textContent = 'Nenhum arquivo selecionado.';
+    return;
+  }
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var text = e.target.result || '';
+    var lines = text.split(/\r?\n/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
+    userWordlist = lines;
+    status.textContent = 'Wordlist carregada: ' + lines.length + ' palavras';
+  };
+  reader.onerror = function() { status.textContent = 'Erro ao ler o arquivo.'; };
+  reader.readAsText(file);
+}
+
+function runCrackFromUI() {
+  var hash = document.getElementById('text').value.trim();
+  var hashType = document.getElementById('hashType').value;
+  var resultElement = document.getElementById('result');
+  if (!hash) { resultElement.textContent = 'Insira um hash para decodificar.'; return; }
+  resultElement.textContent = 'Tentando...';
+  setTimeout(function() {
+    var found = crackHash(hash, hashType);
+    resultElement.textContent = found ? ('Encontrado: ' + found) : 'Não encontrado na wordlist.';
+  }, 20);
+}
+
 // Expose functions used by inline handlers and provide module namespace
 window.convertValue = convertValue;
 window.showConversionOptions = showConversionOptions;
 window.convertToHash = convertToHash;
+window.handleWordlistUpload = handleWordlistUpload;
+window.runCrackFromUI = runCrackFromUI;
 window.Cryptool = {
   convertValue: convertValue,
   showConversionOptions: showConversionOptions,
