@@ -921,7 +921,8 @@ window.runCrackFromUI = runCrackFromUI;
 window.startWorkerCrackWithFile = startWorkerCrackWithFile;
 window.abortWorker = abortWorker;
 // Load default wordlist from file when requested
-function loadDefaultWordlist() {
+function loadDefaultWordlist(suppressStatus) {
+  suppressStatus = !!suppressStatus;
   return new Promise(function(resolve, reject){
     fetch('wordlists/common.txt').then(function(resp){
       if (!resp.ok) throw new Error('HTTP '+resp.status);
@@ -929,10 +930,14 @@ function loadDefaultWordlist() {
     }).then(function(txt){
       var lines = txt.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
         defaultWordlist = lines;
-        var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Padrão: ' + lines.length + ' palavras';
+        if (!suppressStatus) {
+          var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Padrão: ' + lines.length + ' palavras';
+        }
       resolve(lines);
     }).catch(function(err){
-      var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Erro ao carregar wordlist padrão.';
+      if (!suppressStatus) {
+        var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Erro ao carregar wordlist padrão.';
+      }
       reject(err);
     });
   });
@@ -992,7 +997,8 @@ function startMergedCrack(file, hash, hashType) {
   };
   // load default if necessary
   if (!Array.isArray(defaultWordlist) || defaultWordlist.length === 0) {
-    loadDefaultWordlist().then(doStart).catch(function(){ doStart(); });
+    // when merging defaults with a custom file we don't want to override the visible status
+    loadDefaultWordlist(true).then(doStart).catch(function(){ doStart(); });
   } else {
     doStart();
   }
@@ -1030,8 +1036,9 @@ document.addEventListener('DOMContentLoaded', function() {
           var preview = Array.isArray(uploadedPreview) && uploadedPreview.length ? uploadedPreview : null;
           // If merge requested and we have a small preview, merge default + preview and run in-memory batch
           if (merge) {
-            if (preview && preview.length < 2000) {
-              loadDefaultWordlist().then(function(defaults){
+              if (preview && preview.length < 2000) {
+              // load defaults without altering the visible wordlist status (we're merging)
+              loadDefaultWordlist(true).then(function(defaults){
                 var merged = defaults.concat(preview);
                 startWorkerCrackWithCandidates(merged, hash, hashType);
               }).catch(function(){
@@ -1055,6 +1062,15 @@ document.addEventListener('DOMContentLoaded', function() {
           // If user selected "Personalizada" but didn't provide a file, switch back to default visually
           try { var srcSel = document.getElementById('wordlistSource'); if (srcSel) { srcSel.value = 'default'; } } catch(e){}
           var mergeRowHide = document.querySelector('.wordlist-merge'); if (mergeRowHide) mergeRowHide.style.display='none';
+            // Update wordlist status to reflect default selection
+            var statusEl = document.getElementById('wordlistStatus');
+            if (statusEl) {
+              if (Array.isArray(defaultWordlist) && defaultWordlist.length > 0) {
+                statusEl.textContent = 'Padrão: ' + defaultWordlist.length + ' palavras';
+              } else {
+                statusEl.textContent = 'Padrão: (carregando...)';
+              }
+            }
           // load default wordlist into memory if not loaded and run it
           if (!Array.isArray(defaultWordlist) || defaultWordlist.length === 0) {
             loadDefaultWordlist().then(function(){
