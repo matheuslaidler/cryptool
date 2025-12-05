@@ -573,14 +573,15 @@ function handleWordlistUpload() {
   var file = input.files[0];
   // For large files we defer to the worker streaming path; still read a small preview
   var reader = new FileReader();
-  reader.onload = function(e) {
+    reader.onload = function(e) {
     var text = e.target.result || '';
     var lines = text.split(/\r?\n/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
-    // keep only first 500 lines as a quick preview in main thread
-    uploadedPreview = lines.slice(0,500);
+    // keep only first 999 lines as a quick preview in main thread
+    uploadedPreview = lines.slice(0,999);
     // store selected file for worker streaming
     window.__selectedWordlistFile = file;
-    status.textContent = 'Arquivo: ' + uploadedPreview.length + ' palavras';
+    // update status text, respect merge checkbox if set
+    updateWordlistStatus();
     // set source to custom and show open button
     var sourceSel = document.getElementById('wordlistSource'); if (sourceSel) sourceSel.value = 'custom';
     var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display = 'inline-block';
@@ -943,6 +944,45 @@ function loadDefaultWordlist(suppressStatus) {
   });
 }
 
+// Update the visible wordlist status depending on selected source, uploaded preview and merge checkbox
+function updateWordlistStatus() {
+  var statusEl = document.getElementById('wordlistStatus');
+  if (!statusEl) return;
+  var source = (document.getElementById('wordlistSource')||{}).value || 'default';
+  var customCount = Array.isArray(uploadedPreview) ? uploadedPreview.length : 0;
+  var defaultCount = Array.isArray(defaultWordlist) ? defaultWordlist.length : 0;
+  var merge = !!(document.getElementById('mergeDefault') && document.getElementById('mergeDefault').checked);
+
+  if (source === 'default') {
+    if (defaultCount > 0) statusEl.textContent = 'Padrão: ' + defaultCount + ' palavras';
+    else statusEl.textContent = 'Padrão: (carregando...)';
+    return;
+  }
+
+  // source === custom
+  if (!customCount) {
+    statusEl.textContent = 'Arquivo: (Vazio)';
+    return;
+  }
+
+  if (merge) {
+    // Ensure default is loaded to compute accurate merged count
+    if (!Array.isArray(defaultWordlist) || defaultCount === 0) {
+      // load defaults silently, then update status
+      loadDefaultWordlist(true).then(function(defs){
+        var dc = Array.isArray(defs) ? defs.length : 0;
+        statusEl.textContent = 'Arquivo: ' + (customCount + dc) + ' palavras ';
+      }).catch(function(){
+        statusEl.textContent = 'Arquivo: ' + customCount + ' palavras (padrão: erro)';
+      });
+    } else {
+      statusEl.textContent = 'Arquivo: ' + (customCount + defaultCount) + ' palavras';
+    }
+  } else {
+    statusEl.textContent = 'Arquivo: ' + customCount + ' palavras';
+  }
+}
+
 // Orchestrate: process default candidates first, then stream the uploaded file.
 function startMergedCrack(file, hash, hashType) {
   // Ensure default is loaded
@@ -1104,7 +1144,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // If user selected decode for hash and default source is selected, load default wordlist if not loaded
     var wordlistSource = (document.getElementById('wordlistSource')||{}).value || 'default';
     if (convType === 'hash' && action === 'decode' && wordlistSource === 'default' && (!Array.isArray(defaultWordlist) || defaultWordlist.length === 0)) {
-      loadDefaultWordlist();
+        loadDefaultWordlist();
     }
   });
 
@@ -1142,7 +1182,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // reset UI hints
     var progressEl = document.getElementById('crackProgress'); if (progressEl) { progressEl.style.display='none'; progressEl.value=0; }
     var log = document.getElementById('crackLog'); if (log) log.textContent = '';
+    // make sure status reflects merge checkbox if user toggles selection
+    updateWordlistStatus();
   });
+  // merge checkbox listener: update counts when toggled
+  var mergeBox = document.getElementById('mergeDefault'); if (mergeBox) mergeBox.addEventListener('change', function(){ updateWordlistStatus(); });
 });
 
 })(window);
