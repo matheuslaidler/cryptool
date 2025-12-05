@@ -256,3 +256,54 @@
 	white-space: nowrap !important;
 	border: 0 !important;
 }
+
+/* Modal styles */
+.modal {
+	position: fixed;
+	z-index: 10000;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: rgba(0,0,0,0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.modal-content {
+	background: linear-gradient(180deg,#0b0b0b,#1a1a1a);
+	padding: 18px;
+	border-radius: 10px;
+	width: 90%;
+	max-width: 560px;
+	color: #e6f9fb;
+	box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+}
+.modal-close {
+	float: right;
+	font-size: 22px;
+	cursor: pointer;
+	color: #9ff;
+}
+
+/* Wordlist control layout */
+/* Wordlist control layout */
+#actionRow .action-controls { display:flex; flex-direction:column; align-items:center; gap:8px; }
+#wordlistControl { margin-top: 6px; width:100%; max-width:520px; }
+#wordlistControl .ctoolsub { min-width: 140px; }
+#wordlistControl .wordlist-row { display:flex; gap:8px; align-items:center; justify-content:center; }
+#wordlistControl .wordlist-meta { margin-top:6px; font-size:0.95em; color:#cfe; text-align:center; max-width:360px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-left:auto; margin-right:auto; }
+#wordlistControl .wordlist-actions { margin-top:6px; display:flex; gap:8px; align-items:center; justify-content:center; }
+#wordlistStatus { display:block; }
+#crackProgress { vertical-align: middle; width:180px; height:12px; border-radius:6px; overflow:hidden; }
+.crack-log { display:inline-block; min-width:180px; color:#bff; margin-left:8px; text-align:left; }
+
+/* Buttons styling sync */
+.ctoolsBTN { cursor: pointer; }
+
+@media (max-width: 600px) {
+	.modal-content { padding: 12px; }
+	#wordlistStatus { display:block; width:100%; text-align:center; }
+	#wordlistControl { display:flex; flex-direction:column; gap:8px; }
+}

@@ -3,6 +3,12 @@
 'use strict';
 // user-provided wordlist (from upload)
 var userWordlist = null;
+var crackWorker = null;
+var currentWorkerRunning = false;
+var lastProgressTimestamp = 0;
+var lastProcessedCount = 0;
+// flag used by chunkFileInBatches to cancel reading when abort requested
+var chunkedCancelFlag = false;
 // Função para converter o valor
 function convertValue() {
   var conversionType = document.getElementById("conversionType").value;
@@ -36,15 +42,16 @@ function convertValue() {
       convertedValue = convertCryptoCipher(inputValue, actionType);
       break;
     case "hash":
-      if (actionType === 'decode') {
-        var hashType = document.getElementById('hashType').value;
-        var cracked = crackHash(inputValue, hashType);
-        resultElement.textContent = cracked ? ('Encontrado: ' + cracked) : 'Não encontrado na wordlist.';
-        return;
-      } else {
-        convertToHash();
-        return;
-      }
+        if (actionType === 'decode') {
+          var hashType = document.getElementById('hashType').value;
+          // attempt quick crack with in-memory small list
+          var cracked = crackHash(inputValue, hashType);
+          resultElement.textContent = cracked ? cracked : 'Não encontrado na wordlist.';
+          return;
+        } else {
+          convertToHash();
+          return;
+        }
     default:
       resultElement.innerText = "Opção de conversão inválida.";
       return;
@@ -71,6 +78,11 @@ function showConversionOptions() {
       actionRow.style.display = 'table-row';
     } else {
       actionRow.style.display = 'none';
+      // reset any progress UI
+      var progress = document.getElementById('crackProgress'); if (progress) progress.style.display='none';
+      var abortBtn = document.getElementById('abortCrackBtn'); if (abortBtn) abortBtn.style.display='none';
+      var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display='none';
+      var log = document.getElementById('crackLog'); if (log) log.textContent = '';
     }
   }
 
@@ -550,22 +562,340 @@ function crackHash(targetHash, hashType) {
 
 // Handle file upload (wordlist)
 function handleWordlistUpload() {
-  var input = document.getElementById('wordlistFile');
+  var input = document.getElementById('modalWordlistFile') || document.getElementById('wordlistFile');
   var status = document.getElementById('wordlistStatus');
   if (!input || !input.files || input.files.length === 0) {
     status.textContent = 'Nenhum arquivo selecionado.';
     return;
   }
   var file = input.files[0];
+  // For large files we defer to the worker streaming path; still read a small preview
   var reader = new FileReader();
   reader.onload = function(e) {
     var text = e.target.result || '';
     var lines = text.split(/\r?\n/).map(function(s) { return s.trim(); }).filter(function(s) { return s.length > 0; });
-    userWordlist = lines;
-    status.textContent = 'Wordlist carregada: ' + lines.length + ' palavras';
+    // keep only first 500 lines as a quick preview in main thread
+    userWordlist = lines.slice(0,500);
+    // store selected file for worker streaming
+    window.__selectedWordlistFile = file;
+    status.textContent = 'Arquivo: ' + userWordlist.length + ' palavras';
+    // set source to custom and show open button
+    var sourceSel = document.getElementById('wordlistSource'); if (sourceSel) sourceSel.value = 'custom';
+    var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display = 'inline-block';
+    // Close modal if open
+    var modal = document.getElementById('wordlistModal'); if (modal) modal.style.display='none';
   };
   reader.onerror = function() { status.textContent = 'Erro ao ler o arquivo.'; };
-  reader.readAsText(file);
+  // read first 200KB only as preview
+  var blob = file.slice(0, 200*1024);
+  reader.readAsText(blob);
+}
+
+function startWorkerCrackWithFile(file, hash, hashType) {
+  if (crackWorker) {
+    try { crackWorker.terminate(); } catch(e){}
+    crackWorker = null;
+  }
+  crackWorker = new Worker('js/crackWorker.js');
+  currentWorkerRunning = true;
+  var progressEl = document.getElementById('crackProgress');
+  var abortBtn = document.getElementById('abortCrackBtn');
+  if (progressEl) { progressEl.value = 0; progressEl.style.display = 'inline-block'; }
+  if (abortBtn) { abortBtn.style.display='inline-block'; }
+  lastProgressTimestamp = 0; lastProcessedCount = 0;
+
+  crackWorker.onmessage = function(ev) {
+    var d = ev.data;
+    if (!d) return;
+    if (d.type === 'progress') {
+      // Update progress and log (compute speed)
+      var now = Date.now();
+      if (d.fileSize && d.processedBytes) {
+        var pct = Math.min(100, Math.floor((d.processedBytes / d.fileSize) * 100));
+        if (progressEl) progressEl.value = pct;
+        var log = document.getElementById('crackLog'); if (log) log.textContent = pct + '%';
+      } else if (d.processed && d.total) {
+        var pct = Math.min(100, Math.floor((d.processed / d.total)*100));
+        if (progressEl) progressEl.value = pct;
+        var processed = d.processed || 0;
+        var delta = 0;
+        if (lastProgressTimestamp) {
+          var dt = (now - lastProgressTimestamp)/1000;
+          var dproc = processed - lastProcessedCount;
+          delta = dt>0 ? Math.round(dproc/dt) : 0;
+        }
+        lastProgressTimestamp = now; lastProcessedCount = processed;
+        var log = document.getElementById('crackLog'); if (log) log.textContent = processed + ' / ' + d.total + ' (~' + delta + ' l/s)';
+      }
+    } else if (d.type === 'found') {
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
+      crackWorker.terminate(); crackWorker = null;
+    } else if (d.type === 'batchDone') {
+      // worker couldn't stream file but processed a batch - ignore here (file streaming expected)
+      // main will handle batch flow
+      // no-op
+    } else if (d.type === 'done') {
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Não encontrado na wordlist.';
+      crackWorker.terminate(); crackWorker = null;
+    } else if (d.type === 'aborted') {
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Processo abortado.';
+      crackWorker.terminate(); crackWorker = null;
+    } else if (d.type === 'error') {
+      // If streaming is not supported, fallback to chunked FileReader -> batch send
+      if (String(d.message || '').toLowerCase().indexOf('stream') !== -1) {
+        // terminate current worker and create a new worker for batch processing
+        try { crackWorker.terminate(); } catch(e){}
+        crackWorker = new Worker('js/crackWorker.js');
+        // start processing in batches
+        chunkFileInBatches(file, hash, hashType);
+        return;
+      }
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Erro: ' + (d.message||'');
+      crackWorker.terminate(); crackWorker = null;
+    }
+  };
+
+  crackWorker.postMessage({cmd:'start', hash:hash, hashType:hashType, file:file});
+}
+
+// Fallback for browsers/workers that can't stream files: read the file in chunks
+// on the main thread, split into lines, and send batches to the worker via startBatch.
+function chunkFileInBatches(file, hash, hashType) {
+  if (!file) {
+    var resEl = document.getElementById('result'); if (resEl) resEl.textContent = 'Nenhum arquivo para processar.';
+    return;
+  }
+  var chunkSize = 256 * 1024; // 256KB
+  var batchSize = 2000; // candidates per batch
+  var offset = 0;
+  var leftover = '';
+  var pending = [];
+  var processingBatch = false;
+  var canceled = false;
+  // clear any previous chunk cancel flag
+  chunkedCancelFlag = false;
+  var processedCandidates = 0;
+
+  var progressEl = document.getElementById('crackProgress');
+  var abortBtn = document.getElementById('abortCrackBtn');
+  if (progressEl) { progressEl.style.display='inline-block'; progressEl.value = 0; }
+  if (abortBtn) { abortBtn.style.display='inline-block'; }
+
+  // ensure the worker message handler handles batch lifecycle
+  crackWorker.onmessage = function(ev) {
+    var d = ev.data;
+    if (!d) return;
+    if (d.type === 'found') {
+      canceled = true;
+      chunkedCancelFlag = true;
+      processingBatch = false;
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
+      try { crackWorker.terminate(); } catch(e){}
+      crackWorker = null;
+    } else if (d.type === 'batchDone') {
+      // worker finished a batch, allow sending next
+      processingBatch = false;
+      processedCandidates += (d.processed || 0);
+      // update progress (approx) using file offset / size
+      if (progressEl && file.size) {
+        var pct = Math.min(100, Math.floor((offset / file.size) * 100));
+        progressEl.value = pct;
+        var log = document.getElementById('crackLog'); if (log) log.textContent = processedCandidates + ' candidates processed';
+      }
+      // send next batch if available
+      maybeSendNextBatch();
+    } else if (d.type === 'error') {
+      processingBatch = false;
+      canceled = true;
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var res = document.getElementById('result'); if (res) res.textContent = 'Erro: ' + (d.message||'');
+      try { crackWorker.terminate(); } catch(e){}
+      crackWorker = null;
+    } else if (d.type === 'aborted') {
+      processingBatch = false; canceled = true; currentWorkerRunning = false; chunkedCancelFlag = true;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var res = document.getElementById('result'); if (res) res.textContent = 'Processo abortado.';
+      try { crackWorker.terminate(); } catch(e){}
+      crackWorker = null;
+    }
+  };
+
+  function sendBatch(batch) {
+    if (!crackWorker) return;
+    processingBatch = true;
+    try {
+      crackWorker.postMessage({cmd:'startBatch', candidates: batch, hash: hash, hashType: hashType});
+    } catch (e) {
+      processingBatch = false;
+    }
+  }
+
+  function maybeSendNextBatch() {
+    if (canceled || chunkedCancelFlag) return;
+    if (processingBatch) return;
+    if (pending.length === 0) {
+      // if no pending and more to read, wait for read loop; if finished reading, finalize
+      if (offset >= file.size) {
+        // all data read and no pending candidates -> finished
+        currentWorkerRunning = false;
+        if (progressEl) progressEl.style.display='none';
+        if (abortBtn) abortBtn.style.display='none';
+        var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Não encontrado na wordlist.';
+        try { crackWorker.terminate(); } catch(e){}
+        crackWorker = null;
+      }
+      return;
+    }
+    // take up to batchSize candidates
+    var batch = pending.splice(0, batchSize);
+    sendBatch(batch);
+  }
+
+  function readNextChunk() {
+    if (canceled || chunkedCancelFlag) return;
+    if (offset >= file.size) {
+      // no more to read; ensure leftover is processed
+      if (leftover) {
+        pending.push(leftover);
+        leftover = '';
+      }
+      // kick sending if idle
+      maybeSendNextBatch();
+      return;
+    }
+    var end = Math.min(file.size, offset + chunkSize);
+    var blob = file.slice(offset, end);
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      if (canceled) return;
+      var txt = e.target.result || '';
+      var data = leftover + txt;
+      var parts = data.split(/\r?\n/);
+      leftover = parts.pop();
+      for (var i = 0; i < parts.length; i++) {
+        var s = parts[i].trim(); if (s) pending.push(s);
+      }
+      // attempt to send batches while pending is large
+      if (!processingBatch && pending.length >= batchSize) {
+        maybeSendNextBatch();
+      }
+      // update progress based on bytes read
+      offset = end;
+      if (progressEl && file.size) {
+        var pct = Math.min(100, Math.floor((offset / file.size) * 100));
+        progressEl.value = pct;
+        var log = document.getElementById('crackLog'); if (log) log.textContent = (offset) + ' / ' + file.size + ' bytes';
+      }
+      // schedule next chunk read
+      setTimeout(function() { readNextChunk(); }, 0);
+    };
+    reader.onerror = function() {
+      canceled = true; currentWorkerRunning = false; chunkedCancelFlag = true;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var res = document.getElementById('result'); if (res) res.textContent = 'Erro ao ler arquivo.';
+      try { crackWorker.terminate(); } catch(e){}
+      crackWorker = null;
+    };
+    reader.readAsText(blob);
+  }
+
+  // start reading and processing
+  readNextChunk();
+}
+
+
+function startWorkerCrackWithCandidates(candidates, hash, hashType) {
+  if (crackWorker) {
+    try { crackWorker.terminate(); } catch(e){}
+    crackWorker = null;
+  }
+  crackWorker = new Worker('js/crackWorker.js');
+  currentWorkerRunning = true;
+  var progressEl = document.getElementById('crackProgress');
+  var abortBtn = document.getElementById('abortCrackBtn');
+  if (progressEl) { progressEl.value = 0; progressEl.style.display = 'inline-block'; }
+  if (abortBtn) { abortBtn.style.display='inline-block'; }
+  lastProgressTimestamp = 0; lastProcessedCount = 0;
+
+  crackWorker.onmessage = function(ev) {
+    var d = ev.data;
+    if (!d) return;
+    if (d.type === 'progress') {
+      if (d.processed && d.total) {
+        var pct = Math.min(100, Math.floor((d.processed / d.total)*100));
+        if (progressEl) progressEl.value = pct;
+      }
+    } else if (d.type === 'found') {
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = d.word;
+      crackWorker.terminate(); crackWorker = null;
+    } else if (d.type === 'batchDone' || d.type === 'done') {
+      // batch finished (we sent candidates as a single batch)
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Não encontrado na wordlist.';
+      crackWorker.terminate(); crackWorker = null;
+    } else if (d.type === 'aborted') {
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Processo abortado.';
+      crackWorker.terminate(); crackWorker = null;
+    } else if (d.type === 'error') {
+      currentWorkerRunning = false;
+      if (progressEl) progressEl.style.display='none';
+      if (abortBtn) abortBtn.style.display='none';
+      var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Erro: ' + (d.message||'');
+      crackWorker.terminate(); crackWorker = null;
+    }
+  };
+
+  crackWorker.postMessage({cmd:'start', hash:hash, hashType:hashType, candidates:candidates});
+}
+
+// Clear result and UI helpers
+function clearResult() {
+  var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = '';
+  var progressEl = document.getElementById('crackProgress'); if (progressEl) { progressEl.style.display='none'; progressEl.value=0; }
+  var abortBtn = document.getElementById('abortCrackBtn'); if (abortBtn) abortBtn.style.display='none';
+  var log = document.getElementById('crackLog'); if (log) log.textContent = '';
+}
+
+window.clearResult = clearResult;
+
+function abortWorker() {
+  if (crackWorker) {
+    try { crackWorker.postMessage({cmd:'abort'}); } catch(e){}
+    try { crackWorker.terminate(); } catch(e){}
+    // set chunk cancel flag so chunkFileInBatches stops reading
+    chunkedCancelFlag = true;
+    crackWorker = null; currentWorkerRunning = false;
+    var progressEl = document.getElementById('crackProgress'); if (progressEl) progressEl.style.display='none';
+    var abortBtn = document.getElementById('abortCrackBtn'); if (abortBtn) abortBtn.style.display='none';
+    var resultEl = document.getElementById('result'); if (resultEl) resultEl.textContent = 'Processo abortado.';
+  }
 }
 
 function runCrackFromUI() {
@@ -586,10 +916,125 @@ window.showConversionOptions = showConversionOptions;
 window.convertToHash = convertToHash;
 window.handleWordlistUpload = handleWordlistUpload;
 window.runCrackFromUI = runCrackFromUI;
+window.startWorkerCrackWithFile = startWorkerCrackWithFile;
+window.abortWorker = abortWorker;
+// Load default wordlist from file when requested
+function loadDefaultWordlist() {
+  return new Promise(function(resolve, reject){
+    fetch('wordlists/common.txt').then(function(resp){
+      if (!resp.ok) throw new Error('HTTP '+resp.status);
+      return resp.text();
+    }).then(function(txt){
+      var lines = txt.split(/\r?\n/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length>0; });
+      userWordlist = lines;
+      var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Padrão: ' + lines.length + ' palavras';
+      resolve(lines);
+    }).catch(function(err){
+      var status = document.getElementById('wordlistStatus'); if (status) status.textContent = 'Erro ao carregar wordlist padrão.';
+      reject(err);
+    });
+  });
+}
 window.Cryptool = {
   convertValue: convertValue,
   showConversionOptions: showConversionOptions,
   crackHash: crackHash
 };
+
+// Initialize event listeners (replace inline handlers)
+document.addEventListener('DOMContentLoaded', function() {
+  var conv = document.getElementById('conversionType');
+  if (conv) conv.addEventListener('change', showConversionOptions);
+  var fileInput = document.getElementById('wordlistFile');
+  // file input is now in modal; modal input listener set below
+  // if (fileInput) fileInput.addEventListener('change', handleWordlistUpload);
+  var abortBtn = document.getElementById('abortCrackBtn');
+  if (abortBtn) abortBtn.addEventListener('click', function(){ abortWorker(); });
+  var convertBtn = document.getElementById('convertBtn');
+  if (convertBtn) {
+    // ensure Convert triggers convertValue
+    convertBtn.addEventListener('click', function(e){
+      // If cracking scenario with file selected, start worker
+      var convType = (document.getElementById('conversionType')||{}).value || 'select';
+      var action = (document.getElementById('actionType') || {}).value || 'encode';
+      var wordlistSource = (document.getElementById('wordlistSource') || {}).value || 'default';
+      var selectedFile = window.__selectedWordlistFile || null;
+      if (convType === 'hash' && action === 'decode') {
+        var hash = (document.getElementById('text') || {}).value || '';
+        var hashType = (document.getElementById('hashType') || {}).value || 'md5';
+        if (!hash) { document.getElementById('result').textContent = 'Insira um hash para decodificar.'; return; }
+        if (wordlistSource === 'custom' && selectedFile) {
+          startWorkerCrackWithFile(selectedFile, hash, hashType);
+          return;
+        } else {
+          // load default wordlist into userWordlist if not loaded
+          if (!Array.isArray(userWordlist) || userWordlist.length === 0) {
+            loadDefaultWordlist().then(function(){
+              startWorkerCrackWithCandidates(userWordlist, hash, hashType);
+            }).catch(function(){
+              // fallback to built-in crack
+              var found = crackHash(hash, hashType);
+              document.getElementById('result').textContent = found || 'Não encontrado na wordlist.';
+            });
+          } else {
+            startWorkerCrackWithCandidates(userWordlist, hash, hashType);
+          }
+          return;
+        }
+      }
+      // Otherwise default behavior
+      convertValue();
+    });
+  }
+  var clearBtn = document.getElementById('clearResultBtn');
+  if (clearBtn) clearBtn.addEventListener('click', function(){ clearResult(); });
+  // actionType change should toggle wordlistControl visibility when decode selected
+  var actionSelect = document.getElementById('actionType');
+  if (actionSelect) actionSelect.addEventListener('change', function(){
+    var convType = (document.getElementById('conversionType')||{}).value;
+    var action = (document.getElementById('actionType')||{}).value;
+    var control = document.getElementById('wordlistControl');
+    if (control) {
+      if (convType === 'hash' && action === 'decode') control.style.display = 'block'; else control.style.display = 'none';
+    }
+    // If user selected decode for hash and default source is selected, load default wordlist if not loaded
+    var wordlistSource = (document.getElementById('wordlistSource')||{}).value || 'default';
+    if (convType === 'hash' && action === 'decode' && wordlistSource === 'default' && (!Array.isArray(userWordlist) || userWordlist.length === 0)) {
+      loadDefaultWordlist();
+    }
+  });
+
+  // modal controls
+  var openModalBtn = document.getElementById('openWordlistModalBtn');
+  var modal = document.getElementById('wordlistModal');
+  var closeModal = document.getElementById('closeModal');
+  var modalUploadBtn = document.getElementById('modalUploadBtn');
+  var modalInput = document.getElementById('modalWordlistFile');
+  if (openModalBtn && modal) openModalBtn.addEventListener('click', function(){ modal.style.display='flex'; });
+  if (closeModal && modal) closeModal.addEventListener('click', function(){ modal.style.display='none'; });
+  if (modalUploadBtn && modalInput) modalUploadBtn.addEventListener('click', function(){ handleWordlistUpload(); });
+  // wordlist source select
+  var wordlistSource = document.getElementById('wordlistSource');
+  if (wordlistSource) wordlistSource.addEventListener('change', function(){
+    var v = (wordlistSource.value||'default');
+    var status = document.getElementById('wordlistStatus');
+    if (v === 'default') {
+      loadDefaultWordlist();
+      // hide modal button when using default
+      var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display='none';
+      // clear any selected custom file
+      window.__selectedWordlistFile = null;
+    } else {
+      // clear preview and wait for user upload
+      userWordlist = [];
+      window.__selectedWordlistFile = null;
+      if (status) status.textContent = 'Arquivo: (Vazio)';
+      var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display='inline-block';
+    }
+    // reset UI hints
+    var progressEl = document.getElementById('crackProgress'); if (progressEl) { progressEl.style.display='none'; progressEl.value=0; }
+    var log = document.getElementById('crackLog'); if (log) log.textContent = '';
+  });
+});
 
 })(window);

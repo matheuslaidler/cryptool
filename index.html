@@ -224,21 +224,50 @@
                           <!-- Action row: shown only for ciphers and hashes -->
                           <tr id="actionRow" style="display:none" align="center">
                             <td valign="top">
-                              <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+                              <div class="action-controls">
                                 <label for="actionType" class="sr-only">Ação</label>
                                 <select id="actionType" class="ctoolsub" aria-label="Ação Encode/Decode">
                                   <option value="encode">Encode</option>
                                   <option value="decode">Decode</option>
                                 </select>
 
-                                <label for="wordlistFile" class="sr-only">Enviar wordlist</label>
-                                <input type="file" id="wordlistFile" accept=".txt" />
-                                <button type="button" id="loadWordlistBtn" onclick="handleWordlistUpload()" class="ctoolsBTN">Carregar wordlist</button>
-                                <button type="button" id="startCrackBtn" onclick="runCrackFromUI()" class="ctoolsBTN">Iniciar Crack</button>
-                                <span id="wordlistStatus" class="b2text" aria-live="polite"></span>
+                                <div id="wordlistControl" style="display:none;">
+                                  <div class="wordlist-row">
+                                    <label for="wordlistSource" class="sr-only">Fonte da wordlist</label>
+                                    <select id="wordlistSource" class="ctoolsub" aria-label="Fonte da wordlist">
+                                      <option value="default">Padrão</option>
+                                      <option value="custom">Personalizada</option>
+                                    </select>
+                                    <button type="button" id="openWordlistModalBtn" class="ctoolsBTN" style="display:none">Selecionar</button>
+                                  </div>
+                                  <div class="wordlist-meta">
+                                    <span id="wordlistStatus" class="b2text" aria-live="polite">Wordlist padrão</span>
+                                  </div>
+                                  <div class="wordlist-actions">
+                                    <progress id="crackProgress" value="0" max="100" style="display:none;"></progress>
+                                    <button type="button" id="abortCrackBtn" class="ctoolsBTN" style="display:none">Abortar</button>
+                                    <div id="crackLog" class="crack-log" aria-live="polite"></div>
+                                  </div>
+                                </div>
                               </div>
                             </td>
                           </tr>
+
+                          <!-- Modal para upload e instruções de wordlist -->
+                          <div id="wordlistModal" class="modal" style="display:none;">
+                            <div class="modal-content">
+                              <span id="closeModal" class="modal-close">&times;</span>
+                              <h3>Wordlist personalizada</h3>
+                              <p>Formato: um termo por linha. Exemplo:</p>
+                              <pre style="background:#111;padding:8px;border-radius:6px;color:#9ff;">password
+test
+senha123
+p@ssw0rd</pre>
+                              <p>Escolha um arquivo .txt com a wordlist (cada palavra em linha nova). Ao enviar, o navegador faz um preview de até 500 linhas; o arquivo completo é processado em lotes pelo worker, será mostrado progresso e você poderá abortar.</p>
+                              <input type="file" id="modalWordlistFile" accept=".txt" />
+                              <div style="margin-top:8px;text-align:right;"><button id="modalUploadBtn" class="ctoolsBTN">Enviar e fechar</button></div>
+                            </div>
+                          </div>
                           <tr>
                             <td valign="top">
                               <input
@@ -252,9 +281,10 @@
                           </tr>
                         </tbody>
                       </table>
-                      <button type="button" onclick="convertValue()" class="ctoolsBTN">
-                        Converter
-                      </button>
+                      <div style="display:flex;gap:8px;justify-content:center;align-items:center;">
+                        <button type="button" id="convertBtn" class="ctoolsBTN">Converter</button>
+                        <button type="button" id="clearResultBtn" class="ctoolsBTN">Limpar</button>
+                      </div>
                     </td>
                   </tr>
                   <tr>
