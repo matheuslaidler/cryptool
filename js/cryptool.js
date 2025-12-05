@@ -2,6 +2,7 @@
 // Função para converter o valor
 function convertValue() {
   var conversionType = document.getElementById("conversionType").value;
+  var actionType = (document.getElementById("actionType") || {}).value || 'encode';
   var inputValue = document.getElementById("text").value.trim();
   var resultElement = document.getElementById("result");
 
@@ -28,7 +29,7 @@ function convertValue() {
       convertedValue = convertTextual(inputValue);
       break;
     case "cryptoCipher":
-      convertedValue = convertCryptoCipher(inputValue);
+      convertedValue = convertCryptoCipher(inputValue, actionType);
       break;
     case "hash":
       convertToHash();
@@ -39,7 +40,7 @@ function convertValue() {
   }
 
   // Atualiza o resultado na página
-  resultElement.innerHTML = convertedValue;
+  resultElement.textContent = convertedValue;
 }
 
 // Função para mostrar as opções apropriadas ao selecionar o tipo de conversão
@@ -145,19 +146,19 @@ function convertTextual(inputValue) {
 }
 
 // Função para converter as cifras e criptografias
-function convertCryptoCipher(inputValue) {
+function convertCryptoCipher(inputValue, action) {
   var conversionSubType = document.getElementById("cryptoCipherSubType").value;
 
-  // Realiza a conversão com base no subtipo selecionado
+  // Realiza a conversão com base no subtipo selecionado e ação
   switch (conversionSubType) {
     case "morse":
-      return convertToMorse(inputValue);
+      return action === 'decode' ? decodeMorse(inputValue) : convertToMorse(inputValue);
     case "caesar":
-      return cipherCaesar(inputValue);
+      return action === 'decode' ? cipherCaesar(inputValue, -3) : cipherCaesar(inputValue, 3);
     case "base64":
-      return convertToBase64(inputValue);
+      return action === 'decode' ? decodeBase64(inputValue) : convertToBase64(inputValue);
     case "rot13":
-      return cipherROT13(inputValue);
+      return cipherROT13(inputValue); // ROT13 is symmetric
     default:
       return "Opção de cifra inválida.";
   }
@@ -316,31 +317,60 @@ function convertToBase64(text) {
   return base64Result;
 }
 
+function decodeBase64(text) {
+  try {
+    // atob may throw for invalid input
+    return atob(text);
+  } catch (e) {
+    return "Entrada Base64 inválida.";
+  }
+}
+
 // Função para cifra de César
-function cipherCaesar(text) {
-  var shift = 3; // Define o deslocamento da cifra de César
-
-  var result = "";
+function cipherCaesar(text, shift) {
+  shift = typeof shift === 'number' ? shift : 3;
+  var res = "";
   for (var i = 0; i < text.length; i++) {
-    var charCode = text.charCodeAt(i);
-
-    // Verifica se o caractere é uma letra maiúscula
-    if (charCode >= 65 && charCode <= 90) {
-      var shiftedCharCode = ((charCode - 65 + shift) % 26) + 65;
-      result += String.fromCharCode(shiftedCharCode);
-    }
-    // Verifica se o caractere é uma letra minúscula
-    else if (charCode >= 97 && charCode <= 122) {
-      var shiftedCharCode = ((charCode - 97 + shift) % 26) + 97;
-      result += String.fromCharCode(shiftedCharCode);
-    }
-    // Mantém os caracteres não alfabéticos inalterados
-    else {
-      result += text[i];
+    var ch = text.charCodeAt(i);
+    if (ch >= 65 && ch <= 90) {
+      var base = 65;
+      var s = ((ch - base + shift) % 26 + 26) % 26;
+      res += String.fromCharCode(base + s);
+    } else if (ch >= 97 && ch <= 122) {
+      var base2 = 97;
+      var s2 = ((ch - base2 + shift) % 26 + 26) % 26;
+      res += String.fromCharCode(base2 + s2);
+    } else {
+      res += text[i];
     }
   }
+  return res;
+}
 
-  return result;
+// Decodifica Morse (espera pontos e traços separados por espaços; '/' indica espaço entre palavras)
+function decodeMorse(code) {
+  var morseCode = {
+    A: '.-', B: '-...', C: '-.-.', D: '-..', E: '.', F: '..-.', G: '--.', H: '....', I: '..', J: '.---', K: '-.-', L: '.-..', M: '--', N: '-.', O: '---', P: '.--.', Q: '--.-', R: '.-.', S: '...', T: '-', U: '..-', V: '...-', W: '.--', X: '-..-', Y: '-.--', Z: '--..',
+    '0': '-----', '1': '.----', '2': '..---', '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', '8': '---..', '9': '----.'
+  };
+  // invert map
+  var rev = {};
+  for (var k in morseCode) if (morseCode.hasOwnProperty(k)) rev[morseCode[k]] = k;
+
+  var words = code.trim().split(' / ');
+  var result = [];
+  for (var w = 0; w < words.length; w++) {
+    var letters = words[w].split(/\s+/);
+    var out = '';
+    for (var i = 0; i < letters.length; i++) {
+      var l = letters[i];
+      if (l === '') continue;
+      if (rev[l]) out += rev[l];
+      else out += '?';
+    }
+    result.push(out);
+  }
+  return result.join(' ');
 }
 
 // Função para cifra ROT13

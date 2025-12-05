@@ -1,14 +1,18 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
   <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta charset="utf-8" />
-    <script src="js/menu.js"></script>
-    <script src="js/footer.js"></script>
-    <script src="js/crypto.min.js"></script>
-    <script src="js/cryptool.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Cryptool — conversores e codificadores de texto (MD5, SHA, Base64, César, Morse etc.)" />
+    <meta name="theme-color" content="#141414" />
+    <script src="js/menu.js" defer></script>
+    <script src="js/footer.js" defer></script>
+    <script src="js/crypto.min.js" defer></script>
+    <script src="js/cryptool.js" defer></script>
     <title>Cryptool - Matheus Laidler</title>
     <link rel="icon" class="favicon" href="img/icons/faviconML.ico" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="css/cryptool.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/menu.css">
@@ -16,7 +20,7 @@
   </head>
   <body>
   <!-- menu desktop/mobile - matheus laidler: creditos> matheuslaidler.github.io -->
-<nav id="cssmenu">
+<nav id="cssmenu" role="navigation" aria-label="Menu principal">
 	<table width="auto" border="0" align="left"> 
 	  <tbody>
 	   <tr>  
@@ -104,7 +108,7 @@
     <section class="main">
       <div class="video-bg">
         <video autoplay loop muted>
-          <source src="img/bgs/loop.webm" type="video/mp4" />
+          <source src="img/bgs/loop.webm" type="video/webm" />
         </video>
       </div>
       <div class="inicio"></div>
@@ -144,9 +148,18 @@
                           </tr>
                           <tr>
                             <td valign="top">
+                              <select id="actionType" class="ctools" aria-label="Ação de codificação">
+                                <option value="encode">Encode</option>
+                                <option value="decode">Decode</option>
+                              </select>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td valign="top">
                               <select
                                 id="conversionType"
                                 class="ctools"
+                                aria-label="Tipo de conversão"
                                 onchange="showConversionOptions()"
                               >
                                 <option value="select">Cryptool</option>
@@ -172,6 +185,7 @@
                               <select
                                 id="conversionSubType"
                                 class="ctoolsub"
+                                aria-label="Subtipo de conversão numérica"
                               ></select>
                             </td>
                           </tr>
@@ -184,6 +198,7 @@
                               <select
                                 id="textualConversionSubType"
                                 class="ctoolsub"
+                                aria-label="Subtipo de conversão textual"
                               ></select>
                             </td>
                           </tr>
@@ -196,6 +211,7 @@
                               <select
                                 id="cryptoCipherSubType"
                                 class="ctoolsub"
+                                aria-label="Subtipo de cifra ou criptografia"
                               ></select>
                             </td>
                           </tr>
@@ -205,7 +221,7 @@
                             align="center"
                           >
                             <td valign="top">
-                              <select id="hashType" class="ctoolsub">
+                              <select id="hashType" class="ctoolsub" aria-label="Tipo de hash">
                                 <option value="md5">MD5</option>
                                 <option value="sha1">SHA1</option>
                                 <option value="sha256">SHA256</option>
@@ -218,6 +234,7 @@
                               <input
                                 type="text"
                                 id="text"
+                                aria-label="Texto para converter ou codificar"
                                 placeholder="Digite para converter ou codificar"
                                 class="m3write"
                               />
@@ -225,7 +242,7 @@
                           </tr>
                         </tbody>
                       </table>
-                      <button onclick="convertValue()" class="ctoolsBTN">
+                      <button type="button" onclick="convertValue()" class="ctoolsBTN">
                         Converter
                       </button>
                     </td>
@@ -235,7 +252,7 @@
                   </tr>
                   <tr>
                     <td class="infobox">
-                      <div id="result" class="pass2dm"></div>
+                      <div id="result" class="pass2dm" role="status" aria-live="polite"></div>
                     </td>
                   </tr>
                 </tbody>
