@@ -73,6 +73,7 @@ function showConversionOptions() {
   var cryptoCipherOptions = document.getElementById("cryptoCipherOptions");
   var hashOptions = document.getElementById("hashOptions");
   var actionRow = document.getElementById('actionRow');
+  var wordlistControl = document.getElementById('wordlistControl');
 
   // Show the action row (Encode/Decode + wordlist UI) only for cipher/hash types
   if (actionRow) {
@@ -86,6 +87,13 @@ function showConversionOptions() {
       var openBtn = document.getElementById('openWordlistModalBtn'); if (openBtn) openBtn.style.display='none';
       var log = document.getElementById('crackLog'); if (log) log.textContent = '';
     }
+  }
+
+  // Show wordlist control ONLY for hash type
+  if (wordlistControl) {
+    var actionType = document.getElementById('actionType');
+    var action = (actionType && actionType.value) || 'decode';
+    wordlistControl.style.display = (conversionType === 'hash' && action === 'decode') ? 'block' : 'none';
   }
 
   // Oculta todas as opções
